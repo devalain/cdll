@@ -1,0 +1,137 @@
+mod head;
+
+use either::Either;
+use head::{Iter, IterMut, ListHead};
+use std::ptr;
+
+#[macro_export]
+macro_rules! list {
+    [$($elem:expr),* $(,)?] => {{
+        let mut l = $crate::CircularList::new();
+        $(
+            l.add($elem);
+        )*
+        l
+    }}
+}
+
+pub struct CircularList<T> {
+    head: *const ListHead<T>,
+    length: usize,
+}
+impl<T> CircularList<T> {
+    pub fn new() -> Self {
+        Self {
+            head: ptr::null(),
+            length: 0,
+        }
+    }
+    pub fn len(&self) -> usize {
+        self.length
+    }
+    pub fn is_empty(&self) -> bool {
+        self.length == 0
+    }
+    pub fn add(&mut self, val: T) {
+        let new = Box::leak(ListHead::<T>::init(val));
+        if self.head.is_null() {
+            self.head = new;
+        } else {
+            unsafe {
+                let head = self.head as *mut ListHead<T>;
+                (*head).add(new);
+            }
+        }
+        self.length += 1;
+    }
+    pub fn remove(&mut self) -> Option<T> {
+        if self.head.is_null() {
+            None
+        } else {
+            let (new_head, old_val) = unsafe { ListHead::<T>::del(self.head as *mut _) };
+            self.head = new_head;
+            self.length += 1;
+            Some(old_val)
+        }
+    }
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        if !self.is_empty() {
+            Either::Left(Iter::new(self.head))
+        } else {
+            Either::Right(std::iter::empty())
+        }
+    }
+    pub fn iter_once(&self) -> impl Iterator<Item = &T> {
+        self.iter().take(self.len())
+    }
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
+        if !self.is_empty() {
+            Either::Left(IterMut::new(self.head as *mut _))
+        } else {
+            Either::Right(std::iter::empty())
+        }
+    }
+    pub fn iter_mut_once(&mut self) -> impl Iterator<Item = &mut T> {
+        let len = self.len();
+        self.iter_mut().take(len)
+    }
+}
+impl<T> Default for CircularList<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl<T> Drop for CircularList<T> {
+    fn drop(&mut self) {
+        while self.remove().is_some() {}
+    }
+}
+impl<T: std::fmt::Debug> std::fmt::Debug for CircularList<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_list()
+            .entries(self.iter().take(self.len()))
+            .finish()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn empty() {
+        let l = CircularList::new();
+        assert_eq!(l.iter().copied().collect::<Vec<i32>>(), &[]);
+    }
+
+    #[test]
+    fn add() {
+        let l = list![42, 43, 44, 45, 46];
+        assert_eq!(
+            l.iter_once().copied().collect::<Vec<i32>>(),
+            &[42, 43, 44, 45, 46]
+        )
+    }
+
+    #[test]
+    fn remove() {
+        let mut l = list![42, 43, 44, 45, 46];
+        assert_eq!(Some(42), l.remove());
+        assert_eq!(Some(43), l.remove());
+        assert_eq!(Some(44), l.remove());
+        assert_eq!(Some(45), l.remove());
+        assert_eq!(Some(46), l.remove());
+    }
+
+    #[test]
+    fn mutating() {
+        let mut l = list![42, 43, 44, 45, 46];
+        for x in l.iter_mut_once() {
+            *x = *x + 1;
+        }
+        assert_eq!(
+            l.iter_once().copied().collect::<Vec<i32>>(),
+            &[43, 44, 45, 46, 47]
+        )
+    }
+}
