@@ -1,5 +1,6 @@
 use std::{marker::PhantomData, ptr};
 
+/// List element.
 pub struct ListHead<T> {
     next: *const ListHead<T>,
     prev: *const ListHead<T>,
@@ -7,6 +8,8 @@ pub struct ListHead<T> {
 }
 
 impl<T> ListHead<T> {
+    /// Creates a new element with value `val`.
+    /// The created element is its own previous and next element.
     pub fn init(val: T) -> Box<Self> {
         let mut new = Box::new(Self {
             next: ptr::null(),
@@ -18,12 +21,22 @@ impl<T> ListHead<T> {
         new
     }
     unsafe fn __add(new: *mut Self, prev: *mut Self, next: *mut Self) {
+        /*
+            ┌────┬──►┌────┬──►┌────┐
+            │prev│   │new │   │next│
+            └────┘◄──┴────┘◄──┴────┘
+         */
         (*next).prev = new;
         (*new).next = next;
         (*new).prev = prev;
         (*prev).next = new;
     }
     unsafe fn __del(prev: *mut Self, next: *mut Self) {
+        /*
+            ┌────┬──►┌────┐
+            │prev│   │next│
+            └────┘◄──┴────┘
+        */
         (*next).prev = prev;
         (*prev).next = next;
     }
@@ -37,16 +50,24 @@ impl<T> ListHead<T> {
         let to_del = Box::from_raw(to_del);
         (next, to_del.value)
     }
+
+    /// Insert an element behind this one.
     pub fn add(&mut self, new: &mut Self) {
         unsafe {
             Self::__add(new, self.prev as *mut Self, self);
         }
     }
+
+    /// Delete an element.
+    ///
+    /// # Safety
+    /// The calling party must assert that the `to_del` pointer is aligned and not dangling.
     pub unsafe fn del(to_del: *mut Self) -> (*const Self, T) {
         Self::__del_entry(to_del)
     }
 }
 
+/// Circular list iterator.
 pub struct Iter<'life, T> {
     next: *const ListHead<T>,
     _marker: PhantomData<&'life T>,
@@ -75,6 +96,7 @@ impl<'life, T> Iter<'life, T> {
     }
 }
 
+/// Circular list iterator with mutability.
 pub struct IterMut<'life, T> {
     next: *mut ListHead<T>,
     _marker: PhantomData<&'life T>,
