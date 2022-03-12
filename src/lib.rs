@@ -54,6 +54,38 @@ impl<T> CircularList<T> {
             Some(old_val)
         }
     }
+    pub fn swap(&mut self, i: usize, j: usize) {
+        // Do nothing if list is empty
+        if self.length == 0 || i == j {
+            return;
+        }
+
+        let i = i % self.length;
+        let j = j % self.length;
+        // Do nothing if i == j (mod `self.length`)
+        if i == j {
+            return;
+        }
+
+        let from = i.min(j);
+        let count = i.max(j) - from;
+        let mut item1 = self.head as *mut ListHead<T>;
+        for _ in 0..from {
+            item1 = unsafe { (*item1).next() } as *mut _;
+        }
+        let mut item2 = item1;
+        for _ in 0..count {
+            item2 = unsafe { (*item2).next() } as *mut _;
+        }
+        unsafe {
+            ListHead::<T>::swap(item1, item2);
+        }
+        if item1 as *const _ == self.head {
+            self.head = item2 as *const _;
+        } else if item2 as *const _ == self.head {
+            self.head = item1 as *const _;
+        }
+    }
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         if !self.is_empty() {
             Either::Left(Iter::new(self.head))
@@ -127,11 +159,31 @@ mod tests {
     fn mutating() {
         let mut l = list![42, 43, 44, 45, 46];
         for x in l.iter_mut_once() {
-            *x = *x + 1;
+            *x += 1;
         }
         assert_eq!(
             l.iter_once().copied().collect::<Vec<i32>>(),
             &[43, 44, 45, 46, 47]
         )
+    }
+
+    #[test]
+    fn swap() {
+        for (i, j, expected) in [
+            (1, 3, &[42, 45, 44, 43, 46]),
+            (0, 1, &[43, 42, 44, 45, 46]),
+            (1, 2, &[42, 44, 43, 45, 46]),
+            (3, 4, &[42, 43, 44, 46, 45]),
+            (2, 2, &[42, 43, 44, 45, 46]),
+            (0, 4, &[46, 43, 44, 45, 42]),
+        ] {
+            let mut l = list![42, 43, 44, 45, 46];
+            l.swap(i, j);
+            assert_eq!(l.iter_once().copied().collect::<Vec<i32>>(), expected);
+        }
+
+        let mut l = list![42, 43];
+        l.swap(0, 1);
+        assert_eq!(l.iter_once().copied().collect::<Vec<i32>>(), &[43, 42]);
     }
 }

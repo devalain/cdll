@@ -20,12 +20,15 @@ impl<T> ListHead<T> {
         new.prev = &*new;
         new
     }
+    pub fn next(&self) -> *const Self {
+        self.next
+    }
     unsafe fn __add(new: *mut Self, prev: *mut Self, next: *mut Self) {
         /*
-            ┌────┬──►┌────┬──►┌────┐
-            │prev│   │new │   │next│
-            └────┘◄──┴────┘◄──┴────┘
-         */
+           ┌────┬──►┌────┬──►┌────┐
+           │prev│   │new │   │next│
+           └────┘◄──┴────┘◄──┴────┘
+        */
         (*next).prev = new;
         (*new).next = next;
         (*new).prev = prev;
@@ -54,7 +57,11 @@ impl<T> ListHead<T> {
     /// Insert an element behind this one.
     pub fn add(&mut self, new: &mut Self) {
         unsafe {
-            Self::__add(new, self.prev as *mut Self, self);
+            // SAFETY: Since `self` and `new` are borrow checked references, it must be true that
+            // the `new` and `next` parameters are valid pointers. As for the `prev` parameters,
+            // it is the same as `self` or another valid pointer if other calls `__add` where
+            // issued previously.
+            Self::__add(new, self.prev as *mut _, self);
         }
     }
 
@@ -64,6 +71,23 @@ impl<T> ListHead<T> {
     /// The calling party must assert that the `to_del` pointer is aligned and not dangling.
     pub unsafe fn del(to_del: *mut Self) -> (*const Self, T) {
         Self::__del_entry(to_del)
+    }
+
+    unsafe fn __replace(old: *mut Self, new: *mut Self) {
+        (*new).next = (*old).next;
+        (*((*new).next as *mut Self)).prev = new;
+        (*new).prev = (*old).prev;
+        (*((*new).prev as *mut Self)).next = new;
+    }
+
+    pub unsafe fn swap(entry1: *mut Self, entry2: *mut Self) {
+        let mut pos = (*entry2).prev;
+        Self::__del((*entry2).prev as *mut _, (*entry2).next as *mut _);
+        Self::__replace(entry1, entry2);
+        if pos == entry1 {
+            pos = entry2;
+        }
+        Self::__add(entry1 as *mut _, pos as *mut _, (*pos).next as *mut _);
     }
 }
 
