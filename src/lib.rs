@@ -24,6 +24,7 @@ use {
 #[macro_export]
 macro_rules! list {
     [$($elem:expr),* $(,)?] => {{
+        #[allow(unused_mut)]
         let mut l = $crate::CircularList::default();
         $(
             l.add($elem);
@@ -107,6 +108,21 @@ impl<T> CircularList<T> {
         } else if item2 as *const _ == self.head {
             self.head = item1 as *const _;
         }
+    }
+    pub fn merge(&mut self, mut other: Self) {
+        if self.head.is_null() {
+            self.head = other.head;
+        } else if !other.head.is_null() {
+            unsafe {
+                let other_head = other.head as *mut ListHead<T>;
+                let head = self.head as *mut ListHead<T>;
+                let last = (*head).prev() as *mut _;
+                ListHead::<T>::add_list(other_head, last, head);
+            }
+        }
+        self.length += other.length;
+        other.head = ptr::null();
+        other.length = 0;
     }
     pub fn left_rot(&mut self, count: usize) {
         // Do nothing if list is empty
@@ -328,5 +344,25 @@ mod tests {
         assert_eq!(Some(2), iter.next());
         assert_eq!(Some(1), iter.next());
         assert_eq!(None, iter.next());
+    }
+
+    #[test]
+    fn merge() {
+        let mut a = list![1, 2, 3];
+        let b = list![4, 5, 6, 7];
+        a.merge(b);
+        assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[1, 2, 3, 4, 5, 6, 7]);
+
+        let mut a = list![1, 2, 3];
+        a.merge(list![]);
+        assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[1, 2, 3]);
+
+        let mut a = list![];
+        a.merge(list![1, 2, 3]);
+        assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[1, 2, 3]);
+
+        let mut a = list![];
+        a.merge(list![]);
+        assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[]);
     }
 }

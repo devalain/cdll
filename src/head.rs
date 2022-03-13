@@ -113,6 +113,17 @@ impl<T> ListHead<T> {
         }
         Self::__add(entry1 as *mut _, pos as *mut _, (*pos).next as *mut _);
     }
+
+    /// Insert `list` between `prev` and `next`.
+    pub unsafe fn add_list(list: *mut Self, prev: *mut Self, next: *mut Self) {
+        let last_of_list = (*list).prev as *mut Self;
+
+        (*next).prev = last_of_list;
+        (*last_of_list).next = next;
+
+        (*list).prev = prev;
+        (*prev).next = list;
+    }
 }
 
 /// Circular list iterator.
