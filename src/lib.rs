@@ -1,3 +1,18 @@
+//! Circular doubly linked list.
+//! The implementation is inspired by the [linuximplementation in `C`
+//! ](https://github.com/torvalds/linux/blob/master/include/linux/list.h).
+//!
+//! # Basic usage
+//! ```
+//! use cll::list;
+//! let mut my_list = list![1, 2, 3, 4, 5];
+//!
+//! assert_eq!(my_list.remove(), Some(1));
+//! assert_eq!(my_list.pop(), Some(5));
+//!
+//! my_list.iter_mut().for_each(|x: &mut i32| *x -= 1);
+//! assert_eq!(my_list.into_iter().collect::<Vec<i32>>(), &[1, 2, 3])
+//! ```
 mod head;
 
 use {
@@ -113,26 +128,26 @@ impl<T> CircularList<T> {
             self.head = unsafe { (*self.head).prev() };
         }
     }
-    pub fn iter(&self) -> impl Iterator<Item = &T> {
+    pub fn iter_forever(&self) -> impl Iterator<Item = &T> {
         if self.is_empty() {
             Either::Left(std::iter::empty())
         } else {
             Either::Right(Iter::new(self.head))
         }
     }
-    pub fn iter_once(&self) -> impl Iterator<Item = &T> {
-        self.iter().take(self.len())
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.iter_forever().take(self.len())
     }
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
+    pub fn iter_mut_forever(&mut self) -> impl Iterator<Item = &mut T> {
         if self.is_empty() {
             Either::Left(std::iter::empty())
         } else {
             Either::Right(IterMut::new(self.head as *mut _))
         }
     }
-    pub fn iter_mut_once(&mut self) -> impl Iterator<Item = &mut T> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
         let len = self.len();
-        self.iter_mut().take(len)
+        self.iter_mut_forever().take(len)
     }
 }
 impl<T> Default for CircularList<T> {
@@ -151,7 +166,7 @@ impl<T> Drop for CircularList<T> {
 impl<T: std::fmt::Debug> std::fmt::Debug for CircularList<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_list()
-            .entries(self.iter().take(self.len()))
+            .entries(self.iter_forever().take(self.len()))
             .finish()
     }
 }
@@ -185,7 +200,7 @@ mod tests {
     #[test]
     fn empty() {
         let l = CircularList::default();
-        assert_eq!(l.iter_once().copied().collect::<Vec<i32>>(), &[]);
+        assert_eq!(l.iter().copied().collect::<Vec<i32>>(), &[]);
     }
 
     #[test]
@@ -207,11 +222,11 @@ mod tests {
     #[test]
     fn mutating() {
         let mut l = list![42, 43, 44, 45, 46];
-        for x in l.iter_mut_once() {
+        for x in l.iter_mut() {
             *x += 1;
         }
         assert_eq!(
-            l.iter_once().copied().collect::<Vec<i32>>(),
+            l.iter().copied().collect::<Vec<i32>>(),
             &[43, 44, 45, 46, 47]
         )
     }
@@ -264,5 +279,16 @@ mod tests {
         assert_eq!(Some(4), iter.next());
         assert_eq!(None, iter.next());
         assert_eq!(None, iter.next_back());
+    }
+
+    #[test]
+    fn iter_forever() {
+        let numbers = list![1, 2, 3, 4, 5, 6];
+        let double_sum = numbers
+            .iter_forever()
+            .take(2 * numbers.len())
+            .copied()
+            .sum();
+        assert_eq!(42, double_sum);
     }
 }
