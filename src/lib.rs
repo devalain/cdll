@@ -18,7 +18,7 @@ mod head;
 use {
     crate::head::{Iter, IterMut, ListHead},
     either::Either,
-    std::ptr,
+    std::{iter::FromIterator, ptr},
 };
 
 #[macro_export]
@@ -158,6 +158,24 @@ impl<T> Default for CircularList<T> {
         }
     }
 }
+impl<T: Clone> Clone for CircularList<T> {
+    fn clone(&self) -> Self {
+        let mut clone: Self = Default::default();
+        for x in self.iter() {
+            clone.add(x.clone());
+        }
+        clone
+    }
+}
+impl<T> FromIterator<T> for CircularList<T> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let mut new: Self = Default::default();
+        for x in iter {
+            new.add(x);
+        }
+        new
+    }
+}
 impl<T> Drop for CircularList<T> {
     fn drop(&mut self) {
         while self.remove().is_some() {}
@@ -290,5 +308,15 @@ mod tests {
             .copied()
             .sum();
         assert_eq!(42, double_sum);
+    }
+
+    #[test]
+    fn from_iterator() {
+        let mut numbers: CircularList<_> = vec![4, 5, 6, 7].into_iter().collect();
+        assert_eq!(Some(7), numbers.pop());
+        assert_eq!(Some(6), numbers.pop());
+        assert_eq!(Some(5), numbers.pop());
+        assert_eq!(Some(4), numbers.pop());
+        assert_eq!(None, numbers.pop());
     }
 }
