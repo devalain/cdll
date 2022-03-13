@@ -1,5 +1,5 @@
 //! Circular doubly linked list.
-//! The implementation is inspired by the [linuximplementation in `C`
+//! The implementation is inspired by the [linux implementation in `C`
 //! ](https://github.com/torvalds/linux/blob/master/include/linux/list.h).
 //!
 //! # Basic usage
@@ -318,5 +318,15 @@ mod tests {
         assert_eq!(Some(5), numbers.pop());
         assert_eq!(Some(4), numbers.pop());
         assert_eq!(None, numbers.pop());
+    }
+
+    #[test]
+    fn into_iter_rev() {
+        let numbers = list![1, 2, 3];
+        let mut iter = numbers.into_iter().rev();
+        assert_eq!(Some(3), iter.next());
+        assert_eq!(Some(2), iter.next());
+        assert_eq!(Some(1), iter.next());
+        assert_eq!(None, iter.next());
     }
 }
