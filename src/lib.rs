@@ -1,8 +1,10 @@
 mod head;
 
 use either::Either;
-use head::{Iter, IterMut, ListHead};
-use std::ptr;
+use {
+    crate::head::{Iter, IterMut, ListHead},
+    std::ptr,
+};
 
 #[macro_export]
 macro_rules! list {
@@ -118,20 +120,20 @@ impl<T> CircularList<T> {
         }
     }
     pub fn iter(&self) -> impl Iterator<Item = &T> {
-        if !self.is_empty() {
-            Either::Left(Iter::new(self.head))
+        if self.is_empty() {
+            Either::Left(std::iter::empty())
         } else {
-            Either::Right(std::iter::empty())
+            Either::Right(Iter::new(self.head))
         }
     }
     pub fn iter_once(&self) -> impl Iterator<Item = &T> {
         self.iter().take(self.len())
     }
     pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
-        if !self.is_empty() {
-            Either::Left(IterMut::new(self.head as *mut _))
+        if self.is_empty() {
+            Either::Left(std::iter::empty())
         } else {
-            Either::Right(std::iter::empty())
+            Either::Right(IterMut::new(self.head as *mut _))
         }
     }
     pub fn iter_mut_once(&mut self) -> impl Iterator<Item = &mut T> {
@@ -186,7 +188,7 @@ mod tests {
     #[test]
     fn empty() {
         let l = CircularList::new();
-        assert_eq!(l.into_iter().collect::<Vec<i32>>(), &[]);
+        assert_eq!(l.iter_once().copied().collect::<Vec<i32>>(), &[]);
     }
 
     #[test]
@@ -211,7 +213,10 @@ mod tests {
         for x in l.iter_mut_once() {
             *x += 1;
         }
-        assert_eq!(l.into_iter().collect::<Vec<i32>>(), &[43, 44, 45, 46, 47])
+        assert_eq!(
+            l.iter_once().copied().collect::<Vec<i32>>(),
+            &[43, 44, 45, 46, 47]
+        )
     }
 
     #[test]
