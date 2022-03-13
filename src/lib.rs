@@ -1,8 +1,8 @@
 mod head;
 
-use either::Either;
 use {
     crate::head::{Iter, IterMut, ListHead},
+    either::Either,
     std::ptr,
 };
 
