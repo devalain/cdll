@@ -14,7 +14,7 @@ impl<T> ListHead<T> {
     /// ┌───┐
     /// │   │
     /// │ ┌─▼──┐
-    /// └─┤new ├─┐
+    /// └─┤val ├─┐
     ///   └──▲─┘ │
     ///      │   │
     ///      └───┘
@@ -28,14 +28,18 @@ impl<T> ListHead<T> {
         new.prev = &*new;
         new
     }
+
     /// Get a pointer to the next element.
     pub fn next(&self) -> *const Self {
         self.next
     }
+
     /// Get a pointer to the previous element.
     pub fn prev(&self) -> *const Self {
         self.prev
     }
+
+    /// Insert `new` between `prev` and `next`.
     unsafe fn __add(new: *mut Self, prev: *mut Self, next: *mut Self) {
         /*
            ┌────┬──►┌────┬──►┌────┐
@@ -47,6 +51,8 @@ impl<T> ListHead<T> {
         (*new).prev = prev;
         (*prev).next = new;
     }
+
+    /// Disconnect an element by connecting its previous and next elements together.
     unsafe fn __del(prev: *mut Self, next: *mut Self) {
         /*
             ┌────┬──►┌────┐
@@ -56,6 +62,9 @@ impl<T> ListHead<T> {
         (*next).prev = prev;
         (*prev).next = next;
     }
+
+    /// Disconnect an element from the list then get its value and a pointer to the next element.
+    /// The `ListHead` is dropped in the process.
     unsafe fn __del_entry(to_del: *mut Self) -> (*const Self, T) {
         let mut next = (*to_del).next;
         if to_del as *const _ != next {
@@ -86,6 +95,7 @@ impl<T> ListHead<T> {
         Self::__del_entry(to_del)
     }
 
+    /// Connect `new` in place of `old` in the list.
     unsafe fn __replace(old: *mut Self, new: *mut Self) {
         (*new).next = (*old).next;
         (*((*new).next as *mut Self)).prev = new;
@@ -93,6 +103,7 @@ impl<T> ListHead<T> {
         (*((*new).prev as *mut Self)).next = new;
     }
 
+    /// Exchange 2 elements by interchanging their connection to the list.
     pub unsafe fn swap(entry1: *mut Self, entry2: *mut Self) {
         let mut pos = (*entry2).prev;
         Self::__del((*entry2).prev as *mut _, (*entry2).next as *mut _);

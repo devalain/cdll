@@ -50,7 +50,18 @@ impl<T> CircularList<T> {
         } else {
             let (new_head, old_val) = unsafe { ListHead::<T>::del(self.head as *mut _) };
             self.head = new_head;
-            self.length += 1;
+            self.length -= 1;
+            Some(old_val)
+        }
+    }
+    pub fn pop(&mut self) -> Option<T> {
+        if self.head.is_null() {
+            None
+        } else if self.length == 1 {
+            self.remove()
+        } else {
+            let (_, old_val) = unsafe { ListHead::<T>::del((*self.head).prev() as *mut _) };
+            self.length -= 1;
             Some(old_val)
         }
     }
@@ -154,6 +165,11 @@ impl<T> Iterator for IntoIter<T> {
         self.0.remove()
     }
 }
+impl<T> DoubleEndedIterator for IntoIter<T> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.0.pop()
+    }
+}
 impl<T> IntoIterator for CircularList<T> {
     type Item = T;
     type IntoIter = IntoIter<T>;
@@ -170,16 +186,13 @@ mod tests {
     #[test]
     fn empty() {
         let l = CircularList::new();
-        assert_eq!(l.iter().copied().collect::<Vec<i32>>(), &[]);
+        assert_eq!(l.into_iter().collect::<Vec<i32>>(), &[]);
     }
 
     #[test]
     fn add() {
         let l = list![42, 43, 44, 45, 46];
-        assert_eq!(
-            l.iter_once().copied().collect::<Vec<i32>>(),
-            &[42, 43, 44, 45, 46]
-        )
+        assert_eq!(l.into_iter().collect::<Vec<i32>>(), &[42, 43, 44, 45, 46])
     }
 
     #[test]
@@ -198,10 +211,7 @@ mod tests {
         for x in l.iter_mut_once() {
             *x += 1;
         }
-        assert_eq!(
-            l.iter_once().copied().collect::<Vec<i32>>(),
-            &[43, 44, 45, 46, 47]
-        )
+        assert_eq!(l.into_iter().collect::<Vec<i32>>(), &[43, 44, 45, 46, 47])
     }
 
     #[test]
@@ -236,5 +246,21 @@ mod tests {
         let mut l = list![42, 43, 44, 45, 46];
         l.right_rot(3);
         assert_eq!(l.into_iter().collect::<Vec<i32>>(), &[44, 45, 46, 42, 43]);
+    }
+
+    #[test]
+    fn into_iter_double_ended_iterator() {
+        let numbers = list![1, 2, 3, 4, 5, 6];
+
+        let mut iter = numbers.into_iter();
+
+        assert_eq!(Some(1), iter.next());
+        assert_eq!(Some(6), iter.next_back());
+        assert_eq!(Some(5), iter.next_back());
+        assert_eq!(Some(2), iter.next());
+        assert_eq!(Some(3), iter.next());
+        assert_eq!(Some(4), iter.next());
+        assert_eq!(None, iter.next());
+        assert_eq!(None, iter.next_back());
     }
 }
