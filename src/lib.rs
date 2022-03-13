@@ -9,7 +9,7 @@ use {
 #[macro_export]
 macro_rules! list {
     [$($elem:expr),* $(,)?] => {{
-        let mut l = $crate::CircularList::new();
+        let mut l = $crate::CircularList::default();
         $(
             l.add($elem);
         )*
@@ -22,12 +22,6 @@ pub struct CircularList<T> {
     length: usize,
 }
 impl<T> CircularList<T> {
-    pub fn new() -> Self {
-        Self {
-            head: ptr::null(),
-            length: 0,
-        }
-    }
     pub fn len(&self) -> usize {
         self.length
     }
@@ -143,7 +137,10 @@ impl<T> CircularList<T> {
 }
 impl<T> Default for CircularList<T> {
     fn default() -> Self {
-        Self::new()
+        Self {
+            head: ptr::null(),
+            length: 0,
+        }
     }
 }
 impl<T> Drop for CircularList<T> {
@@ -187,7 +184,7 @@ mod tests {
 
     #[test]
     fn empty() {
-        let l = CircularList::new();
+        let l = CircularList::default();
         assert_eq!(l.iter_once().copied().collect::<Vec<i32>>(), &[]);
     }
 
