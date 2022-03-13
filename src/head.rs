@@ -1,6 +1,6 @@
 use std::{marker::PhantomData, ptr};
 
-/// List element.
+/// List element for a doubly linked list.
 pub struct ListHead<T> {
     next: *const ListHead<T>,
     prev: *const ListHead<T>,
@@ -10,6 +10,14 @@ pub struct ListHead<T> {
 impl<T> ListHead<T> {
     /// Creates a new element with value `val`.
     /// The created element is its own previous and next element.
+    /// # Layout
+    /// ┌───┐
+    /// │   │
+    /// │ ┌─▼──┐
+    /// └─┤new ├─┐
+    ///   └──▲─┘ │
+    ///      │   │
+    ///      └───┘
     pub fn init(val: T) -> Box<Self> {
         let mut new = Box::new(Self {
             next: ptr::null(),
@@ -20,8 +28,13 @@ impl<T> ListHead<T> {
         new.prev = &*new;
         new
     }
+    /// Get a pointer to the next element.
     pub fn next(&self) -> *const Self {
         self.next
+    }
+    /// Get a pointer to the previous element.
+    pub fn prev(&self) -> *const Self {
+        self.prev
     }
     unsafe fn __add(new: *mut Self, prev: *mut Self, next: *mut Self) {
         /*

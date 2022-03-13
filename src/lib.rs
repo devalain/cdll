@@ -56,7 +56,7 @@ impl<T> CircularList<T> {
     }
     pub fn swap(&mut self, i: usize, j: usize) {
         // Do nothing if list is empty
-        if self.length == 0 || i == j {
+        if self.length == 0 {
             return;
         }
 
@@ -84,6 +84,26 @@ impl<T> CircularList<T> {
             self.head = item2 as *const _;
         } else if item2 as *const _ == self.head {
             self.head = item1 as *const _;
+        }
+    }
+    pub fn left_rot(&mut self, count: usize) {
+        // Do nothing if list is empty
+        if self.length == 0 {
+            return;
+        }
+        let count = count % self.length;
+        for _ in 0..count {
+            self.head = unsafe { (*self.head).next() };
+        }
+    }
+    pub fn right_rot(&mut self, count: usize) {
+        // Do nothing if list is empty
+        if self.length == 0 {
+            return;
+        }
+        let count = count % self.length;
+        for _ in 0..count {
+            self.head = unsafe { (*self.head).prev() };
         }
     }
     pub fn iter(&self) -> impl Iterator<Item = &T> {
@@ -185,5 +205,25 @@ mod tests {
         let mut l = list![42, 43];
         l.swap(0, 1);
         assert_eq!(l.iter_once().copied().collect::<Vec<i32>>(), &[43, 42]);
+    }
+
+    #[test]
+    fn left_rotate() {
+        let mut l = list![42, 43, 44, 45, 46];
+        l.left_rot(3);
+        assert_eq!(
+            l.iter_once().copied().collect::<Vec<i32>>(),
+            &[45, 46, 42, 43, 44]
+        );
+    }
+
+    #[test]
+    fn right_rotate() {
+        let mut l = list![42, 43, 44, 45, 46];
+        l.right_rot(3);
+        assert_eq!(
+            l.iter_once().copied().collect::<Vec<i32>>(),
+            &[44, 45, 46, 42, 43]
+        );
     }
 }
