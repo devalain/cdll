@@ -146,6 +146,23 @@ impl<T: std::fmt::Debug> std::fmt::Debug for CircularList<T> {
     }
 }
 
+pub struct IntoIter<T>(CircularList<T>);
+impl<T> Iterator for IntoIter<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.remove()
+    }
+}
+impl<T> IntoIterator for CircularList<T> {
+    type Item = T;
+    type IntoIter = IntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter::<T>(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -199,31 +216,25 @@ mod tests {
         ] {
             let mut l = list![42, 43, 44, 45, 46];
             l.swap(i, j);
-            assert_eq!(l.iter_once().copied().collect::<Vec<i32>>(), expected);
+            assert_eq!(l.into_iter().collect::<Vec<i32>>(), expected);
         }
 
         let mut l = list![42, 43];
         l.swap(0, 1);
-        assert_eq!(l.iter_once().copied().collect::<Vec<i32>>(), &[43, 42]);
+        assert_eq!(l.into_iter().collect::<Vec<i32>>(), &[43, 42]);
     }
 
     #[test]
     fn left_rotate() {
         let mut l = list![42, 43, 44, 45, 46];
         l.left_rot(3);
-        assert_eq!(
-            l.iter_once().copied().collect::<Vec<i32>>(),
-            &[45, 46, 42, 43, 44]
-        );
+        assert_eq!(l.into_iter().collect::<Vec<i32>>(), &[45, 46, 42, 43, 44]);
     }
 
     #[test]
     fn right_rotate() {
         let mut l = list![42, 43, 44, 45, 46];
         l.right_rot(3);
-        assert_eq!(
-            l.iter_once().copied().collect::<Vec<i32>>(),
-            &[44, 45, 46, 42, 43]
-        );
+        assert_eq!(l.into_iter().collect::<Vec<i32>>(), &[44, 45, 46, 42, 43]);
     }
 }
