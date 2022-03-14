@@ -240,9 +240,7 @@ impl<T> Drop for CircularList<T> {
 }
 impl<T: std::fmt::Debug> std::fmt::Debug for CircularList<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_list()
-            .entries(self.iter_forever().take(self.len()))
-            .finish()
+        f.debug_list().entries(self.iter()).finish()
     }
 }
 
