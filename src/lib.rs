@@ -4,8 +4,12 @@
 //!
 //! # Basic usage
 //! ```
-//! use cll::list;
-//! let mut my_list = list![1, 2, 3, 4, 5];
+//! use cll::CircularList;
+//!
+//! let mut my_list = CircularList::default();
+//! for x in 1..=5 {
+//!     my_list.add(x);
+//! }
 //!
 //! assert_eq!(my_list.remove(), Some(1));
 //! assert_eq!(my_list.pop(), Some(5));
@@ -21,6 +25,13 @@ use {
     std::{iter::FromIterator, ptr},
 };
 
+/// Create a list with provided elements.
+/// # Exemple
+/// ```
+/// # use cll::list;
+/// let primes = list![2, 3, 5, 7, 11];
+/// println!("{:?}", primes);
+/// ```
 #[macro_export]
 macro_rules! list {
     [$($elem:expr),* $(,)?] => {{
