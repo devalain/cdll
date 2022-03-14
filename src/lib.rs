@@ -49,8 +49,10 @@ impl<T> CircularList<T> {
         if self.head.is_null() {
             self.head = new;
         } else {
+            let head = self.head as *mut ListHead<T>;
             unsafe {
-                let head = self.head as *mut ListHead<T>;
+                // SAFETY: At this point, `head` must be valid since it was initialized to `new`
+                // if it was null.
                 (*head).add(new);
             }
         }
@@ -60,26 +62,36 @@ impl<T> CircularList<T> {
         if self.head.is_null() {
             None
         } else {
-            let (new_head, old_val) = unsafe { ListHead::<T>::del(self.head as *mut _) };
+            let (new_head, old_val) = unsafe {
+                // SAFETY: Since `head` is not null, it must be valid... FIXME
+                // Furthermore, it must be true that it has pointers to its next and previous
+                // elements because... FIXME
+                ListHead::<T>::del(self.head as *mut _)
+            };
             self.head = new_head;
             self.length -= 1;
             Some(old_val)
         }
     }
     pub fn pop(&mut self) -> Option<T> {
-        if self.head.is_null() {
-            None
-        } else if self.length == 1 {
+        if self.length == 1 {
             self.remove()
+        } else if self.head.is_null() {
+            None
         } else {
-            let (_, old_val) = unsafe { ListHead::<T>::del((*self.head).prev() as *mut _) };
+            let (_, old_val) = unsafe {
+                // SAFETY: Since `head` is not null, it must be valid... FIXME
+                // Furthermore, it must be true that it has pointers to its next and previous
+                // elements because... FIXME
+                ListHead::<T>::del((*self.head).prev() as *mut _)
+            };
             self.length -= 1;
             Some(old_val)
         }
     }
     pub fn swap(&mut self, i: usize, j: usize) {
         // Do nothing if list is empty
-        if self.length == 0 {
+        if self.is_empty() {
             return;
         }
 
@@ -94,13 +106,20 @@ impl<T> CircularList<T> {
         let count = i.max(j) - from;
         let mut item1 = self.head as *mut ListHead<T>;
         for _ in 0..from {
-            item1 = unsafe { (*item1).next() } as *mut _;
+            item1 = unsafe {
+                // SAFETY: FIXME
+                (*item1).next()
+            } as *mut _;
         }
         let mut item2 = item1;
         for _ in 0..count {
-            item2 = unsafe { (*item2).next() } as *mut _;
+            item2 = unsafe {
+                // SAFETY: FIXME
+                (*item2).next()
+            } as *mut _;
         }
         unsafe {
+            // SAFETY: FIXME
             ListHead::<T>::swap(item1, item2);
         }
         if item1 as *const _ == self.head {
@@ -113,35 +132,46 @@ impl<T> CircularList<T> {
         if self.head.is_null() {
             self.head = other.head;
         } else if !other.head.is_null() {
+            let other_head = other.head as *mut ListHead<T>;
+            let head = self.head as *mut ListHead<T>;
             unsafe {
-                let other_head = other.head as *mut ListHead<T>;
-                let head = self.head as *mut ListHead<T>;
+                // SAFETY: `head` is not null, so it must be a valid pointer because... FIXME
+                // `other_head` is not null, so it must be a valid pointer for the same reason.
+                // `last` is valid since... FIXME
                 let last = (*head).prev() as *mut _;
                 ListHead::<T>::add_list(other_head, last, head);
             }
         }
         self.length += other.length;
+
+        // `other` must be in valid state when being dropped.
         other.head = ptr::null();
         other.length = 0;
     }
     pub fn left_rot(&mut self, count: usize) {
         // Do nothing if list is empty
-        if self.length == 0 {
+        if self.is_empty() {
             return;
         }
         let count = count % self.length;
         for _ in 0..count {
-            self.head = unsafe { (*self.head).next() };
+            self.head = unsafe {
+                // SAFETY: FIXME
+                (*self.head).next()
+            };
         }
     }
     pub fn right_rot(&mut self, count: usize) {
         // Do nothing if list is empty
-        if self.length == 0 {
+        if self.is_empty() {
             return;
         }
         let count = count % self.length;
         for _ in 0..count {
-            self.head = unsafe { (*self.head).prev() };
+            self.head = unsafe {
+                // SAFETY: FIXME
+                (*self.head).prev()
+            };
         }
     }
     pub fn iter_forever(&self) -> impl Iterator<Item = &T> {
@@ -262,7 +292,7 @@ mod tests {
         assert_eq!(
             l.iter().copied().collect::<Vec<i32>>(),
             &[43, 44, 45, 46, 47]
-        )
+        );
     }
 
     #[test]

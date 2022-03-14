@@ -40,12 +40,15 @@ impl<T> ListHead<T> {
     }
 
     /// Insert `new` between `prev` and `next`.
+    ///
+    /// # Sketch
+    /// ┌────┬──►┌────┬──►┌────┐
+    /// │prev│   │new │   │next│
+    /// └────┘◄──┴────┘◄──┴────┘
+    ///
+    /// # SAFETY
+    /// `next`, `new` and `prev` must be valid pointers.
     unsafe fn __add(new: *mut Self, prev: *mut Self, next: *mut Self) {
-        /*
-           ┌────┬──►┌────┬──►┌────┐
-           │prev│   │new │   │next│
-           └────┘◄──┴────┘◄──┴────┘
-        */
         (*next).prev = new;
         (*new).next = next;
         (*new).prev = prev;
@@ -53,18 +56,25 @@ impl<T> ListHead<T> {
     }
 
     /// Disconnect an element by connecting its previous and next elements together.
+    ///
+    /// # Sketch
+    /// ┌────┬──►┌────┐
+    /// │prev│   │next│
+    /// └────┘◄──┴────┘
+    ///
+    /// # SAFETY
+    /// `next` and `prev` must be valid pointers.
     unsafe fn __del(prev: *mut Self, next: *mut Self) {
-        /*
-            ┌────┬──►┌────┐
-            │prev│   │next│
-            └────┘◄──┴────┘
-        */
         (*next).prev = prev;
         (*prev).next = next;
     }
 
     /// Disconnect an element from the list then get its value and a pointer to the next element.
     /// The `ListHead` is dropped in the process.
+    ///
+    /// # SAFETY
+    /// `to_del` must be a valid pointer to a `ListHead` with valid pointers to its next
+    /// and previous elements.
     unsafe fn __del_entry(to_del: *mut Self) -> (*const Self, T) {
         let mut next = (*to_del).next;
         if to_del as *const _ != next {
@@ -80,8 +90,8 @@ impl<T> ListHead<T> {
     pub fn add(&mut self, new: &mut Self) {
         unsafe {
             // SAFETY: Since `self` and `new` are borrow checked references, it must be true that
-            // the `new` and `next` parameters are valid pointers. As for the `prev` parameters,
-            // it is the same as `self` or another valid pointer if other calls `__add` where
+            // the `new` and `next` parameters are valid pointers. As for the `prev` parameter,
+            // it is the same as `self` or another valid pointer if other `__add` calls where
             // issued previously.
             Self::__add(new, self.prev as *mut _, self);
         }
@@ -90,12 +100,36 @@ impl<T> ListHead<T> {
     /// Delete an element.
     ///
     /// # Safety
-    /// The calling party must assert that the `to_del` pointer is aligned and not dangling.
+    /// The calling party must assert that the `to_del` pointer is valid as well as the pointers to
+    /// its next and previous elements.
     pub unsafe fn del(to_del: *mut Self) -> (*const Self, T) {
         Self::__del_entry(to_del)
     }
 
     /// Connect `new` in place of `old` in the list.
+    ///
+    /// # Sketch
+    ///
+    /// ## Before
+    /// ```text
+    ///     ┌────┬──►?
+    ///     │new │
+    /// ?◄──┴────┘
+    /// ┌────┬──►┌────┬──►┌────┐
+    /// │prev│   │old │   │next│
+    /// └────┘◄──┴────┘◄──┴────┘
+    /// ```
+    ///
+    /// ## After
+    /// ```text
+    /// ┌───────►┌────┬───────┐
+    /// │        │new │       │
+    /// │   ┌────┴────┘◄──┐   │
+    /// │   │             │   │
+    /// ├───▼┐   ┌────┬──►├───▼┐
+    /// │prev│   │old │   │next│
+    /// └────┘◄──┴────┘   └────┘
+    /// ```
     unsafe fn __replace(old: *mut Self, new: *mut Self) {
         (*new).next = (*old).next;
         (*((*new).next as *mut Self)).prev = new;
@@ -115,6 +149,10 @@ impl<T> ListHead<T> {
     }
 
     /// Insert `list` between `prev` and `next`.
+    ///
+    /// # Safety
+    /// `list` must be a valid pointer, as well as `prev`, `next` and also the pointer to the
+    /// preceding element of `list`.
     pub unsafe fn add_list(list: *mut Self, prev: *mut Self, next: *mut Self) {
         let last_of_list = (*list).prev as *mut Self;
 
@@ -135,7 +173,7 @@ impl<'life, T> Iterator for Iter<'life, T> {
     type Item = &'life T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // SAFETY: the lifetime `'life` of `self` is the same as the lifetime of the list. We
+        // SAFETY: the lifetime `'life` of `self` is bound to the lifetime of the list. We
         // return a `'life` shared reference to the current value which is bound to the list.
         // Plus, the list is circular so next should always be non null if the list is non empty.
         let (current, next) = unsafe {
@@ -164,6 +202,9 @@ impl<'life, T> Iterator for IterMut<'life, T> {
     type Item = &'life mut T;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // SAFETY: the lifetime `'life` of `self` is bound to the lifetime of the list. We
+        // return a `'life` shared reference to the current value which is bound to the list.
+        // Plus, the list is circular so next should always be non null if the list is non empty.
         let (current, next) = unsafe {
             let r = &mut *self.next;
             (&mut r.value, (*r).next as *mut _)
