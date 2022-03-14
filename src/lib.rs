@@ -381,18 +381,22 @@ mod tests {
         let mut a = list![1, 2, 3];
         let b = list![4, 5, 6, 7];
         a.merge(b);
+        assert_eq!(a.len(), 7);
         assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[1, 2, 3, 4, 5, 6, 7]);
 
         let mut a = list![1, 2, 3];
         a.merge(list![]);
+        assert_eq!(a.len(), 3);
         assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[1, 2, 3]);
 
         let mut a = list![];
         a.merge(list![1, 2, 3]);
+        assert_eq!(a.len(), 3);
         assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[1, 2, 3]);
 
         let mut a = list![];
         a.merge(list![]);
+        assert_eq!(a.len(), 0);
         assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[]);
     }
 }
