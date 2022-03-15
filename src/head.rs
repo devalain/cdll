@@ -162,10 +162,11 @@ impl<T> ListHead<T> {
         (*((*new).prev as *mut Self)).next = new;
     }
 
-    /// Exchanges 2 elements by interchanging their connection to the list.
+    /// Exchanges 2 elements by interchanging their connection to their list (which could be not
+    /// the same).
     ///
     /// # Safety
-    /// * `entry1` and `entry2` must be valid pointers
+    /// `entry1` and `entry2` must be valid pointers to valid circular linked lists.
     pub unsafe fn swap(entry1: *mut Self, entry2: *mut Self) {
         // `(*entry2).prev` and `(*entry2).next` should be valid according to invariant (3)
         let mut pos = (*entry2).prev;
@@ -187,21 +188,24 @@ impl<T> ListHead<T> {
     /// Insert `list` before `next`.
     ///
     /// # Safety
-    /// * `list` must be a valid pointer, as well as `next` and also the pointer to the
-    /// preceding element of `list`.
-    /// * `list` must not be an element of the same circular list as `next` without defining a new
-    /// head for the orphaned list, otherwise it would cause a memory leak.
+    /// * `list` must be a valid pointer and be part of a valid circular list
+    /// * Idem for `next`
+    /// * `list` **must not** be an element of the same circular list as `next` without defining a
+    /// new head for the orphaned list, otherwise it would cause a memory leak.
     pub unsafe fn add_list(list: *mut Self, next: *mut Self) {
         // `last_of_list` should be valid according to invariant (3)
         let last_of_list = (*list).prev as *mut Self;
         // idem
         let prev = (*next).prev as *mut Self;
 
-        // Preserving invariant (3): TODO
+        // Preserving invariant (3): as soon as `list` is part of a valid circular list as well as
+        // `next`, the connections made here will create 1 or 2 valid circular list(s).
+
         (*next).prev = last_of_list;
-        (*last_of_list).next = next;
+        (*last_of_list).next = next; // The end of `list` is connected to `next`
+
         (*list).prev = prev;
-        (*prev).next = list;
+        (*prev).next = list; // The beginning of `list` is connected to the element before `next`
     }
 }
 

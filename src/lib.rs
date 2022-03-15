@@ -187,7 +187,8 @@ impl<T> CircularList<T> {
             } as *mut _;
         }
         unsafe {
-            // SAFETY: FIXME
+            // SAFETY: According to invariant (3), `item1` and `item2` are part of a valid circular
+            // linked list.
             ListHead::<T>::swap(item1, item2);
         }
         if item1 as *const _ == self.head {
@@ -224,7 +225,9 @@ impl<T> CircularList<T> {
         let count = count % self.length;
         for _ in 0..count {
             self.head = unsafe {
-                // SAFETY: FIXME
+                // SAFETY: Since the list is non empty and according to invariants (1) and (3),
+                // `head` is a valid pointer to a valid circular linked list. So it must be true
+                // that its next element is also valid.
                 (*self.head).next()
             };
         }
@@ -237,7 +240,9 @@ impl<T> CircularList<T> {
         let count = count % self.length;
         for _ in 0..count {
             self.head = unsafe {
-                // SAFETY: FIXME
+                // SAFETY: Since the list is non empty and according to invariants (1) and (3),
+                // `head` is a valid pointer to a valid circular linked list. So it must be true
+                // that its previous element is also valid.
                 (*self.head).prev()
             };
         }
