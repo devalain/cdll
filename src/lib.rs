@@ -165,7 +165,7 @@ impl<T> CircularList<T> {
 
     /// Exchanges the place of the element at position `i` and the element at position `j`.
     /// This operation has `O(n)` complexity.
-    pub fn swap(&mut self, i: usize, j: usize) {
+    pub fn exchange(&mut self, i: usize, j: usize) {
         // Do nothing if list is empty
         if self.is_empty() {
             return;
@@ -419,7 +419,7 @@ mod tests {
     }
 
     #[test]
-    fn swap() {
+    fn exchange() {
         for (i, j, expected) in [
             (1, 3, &[42, 45, 44, 43, 46]),
             (0, 1, &[43, 42, 44, 45, 46]),
@@ -429,12 +429,12 @@ mod tests {
             (0, 4, &[46, 43, 44, 45, 42]),
         ] {
             let mut l = list![42, 43, 44, 45, 46];
-            l.swap(i, j);
+            l.exchange(i, j);
             assert_eq!(l.into_iter().collect::<Vec<i32>>(), expected);
         }
 
         let mut l = list![42, 43];
-        l.swap(0, 1);
+        l.exchange(0, 1);
         assert_eq!(l.into_iter().collect::<Vec<i32>>(), &[43, 42]);
     }
 
