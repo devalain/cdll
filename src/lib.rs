@@ -20,7 +20,7 @@
 //!
 //! # Safety considerations
 //! This crate uses `unsafe` code to dereference raw pointers. In order for it to be *sound*, one
-//! has to preserve some invariants (i.e. pointers must be valid). To achieve this, the source code
+//! has to preserve some invariants (e.g. pointers must be valid). To achieve this, the source code
 //! is commented with careful justifications to *prove* correctness (at least it is a try).
 
 mod head;
