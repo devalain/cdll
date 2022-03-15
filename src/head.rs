@@ -184,7 +184,7 @@ impl<T> ListHead<T> {
         Self::__add(entry1 as *mut _, pos as *mut _, (*pos).next as *mut _);
     }
 
-    /// Insert `list` before of `next`.
+    /// Insert `list` before `next`.
     ///
     /// # Safety
     /// * `list` must be a valid pointer, as well as `next` and also the pointer to the
