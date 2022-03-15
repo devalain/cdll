@@ -200,7 +200,7 @@ impl<T> CircularList<T> {
     }
 
     /// Assembles this list with another by putting all its elements at the end the list.
-    pub fn merge(&mut self, mut other: Self) {
+    pub fn append(&mut self, mut other: Self) {
         if self.head.is_null() {
             self.head = other.head;
         } else if !other.head.is_null() {
@@ -490,25 +490,25 @@ mod tests {
     }
 
     #[test]
-    fn merge() {
+    fn append() {
         let mut a = list![1, 2, 3];
         let b = list![4, 5, 6, 7];
-        a.merge(b);
+        a.append(b);
         assert_eq!(a.len(), 7);
         assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[1, 2, 3, 4, 5, 6, 7]);
 
         let mut a = list![1, 2, 3];
-        a.merge(list![]);
+        a.append(list![]);
         assert_eq!(a.len(), 3);
         assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[1, 2, 3]);
 
         let mut a = list![];
-        a.merge(list![1, 2, 3]);
+        a.append(list![1, 2, 3]);
         assert_eq!(a.len(), 3);
         assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[1, 2, 3]);
 
         let mut a = list![];
-        a.merge(list![]);
+        a.append(list![]);
         assert_eq!(a.len(), 0);
         assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[]);
     }
