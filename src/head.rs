@@ -24,7 +24,7 @@ impl<T> ListHead<T> {
     ///      │   │
     ///      └───┘
     /// ```
-    pub fn init(val: T) -> Box<Self> {
+    pub fn new(val: T) -> Box<Self> {
         let mut new = Box::new(Self {
             next: ptr::null(),
             prev: ptr::null(),

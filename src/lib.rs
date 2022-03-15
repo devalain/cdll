@@ -82,7 +82,7 @@ impl<T> CircularList<T> {
     /// assert_eq!(my_list.pop(), Some("Hello"))
     ///
     pub fn add(&mut self, val: T) {
-        let new = Box::leak(ListHead::<T>::init(val));
+        let new = Box::leak(ListHead::<T>::new(val));
 
         // If `self.head` is null (which means `self.length == 0` by (2)) then it is assigned to
         // a valid pointer to the `new` element, preserving (1).
