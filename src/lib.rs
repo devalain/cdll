@@ -4,7 +4,7 @@
 //!
 //! # Basic usage
 //! ```
-//! use cll::CircularList;
+//! use cdll::CircularList;
 //!
 //! let mut my_list = CircularList::default();
 //! for x in 1..=5 {
@@ -34,13 +34,13 @@ use {
 /// Create a list with provided elements.
 /// # Example
 /// ```
-/// # use cll::list;
+/// # use cdll::list;
 /// let primes = list![2, 3, 5, 7, 11];
 /// println!("{:?}", primes);
 /// ```
 /// It can also be used with whatever expression that is an `IntoIterator`
 /// ```
-/// # use cll::list;
+/// # use cdll::list;
 /// let first_hundred_numbers = list![@each 1_i32..=100];
 /// let sum: i32 = first_hundred_numbers.into_iter().sum();
 /// assert_eq!(sum, 5050);
@@ -86,7 +86,7 @@ impl<T> CircularList<T> {
     ///
     /// # Exemple
     /// ```
-    /// # use cll::list;
+    /// # use cdll::list;
     /// # let mut my_list = list!["Follow the white rabbit"];
     /// my_list.add("Hello");
     /// assert_eq!(my_list.pop(), Some("Hello"))
@@ -237,7 +237,7 @@ impl<T> CircularList<T> {
     ///
     /// # Example
     /// ```
-    /// # use cll::CircularList;
+    /// # use cdll::CircularList;
     /// let mut yoda_says: CircularList<_> = "ready you are not ".chars().collect();
     /// yoda_says.left_rot(6);
     /// assert_eq!("you are not ready ", yoda_says.into_iter().collect::<String>())
@@ -262,7 +262,7 @@ impl<T> CircularList<T> {
     ///
     /// # Example
     /// ```
-    /// # use cll::CircularList;
+    /// # use cdll::CircularList;
     /// let mut yoda_says: CircularList<_> = "the greatest teacher failure is ".chars().collect();
     /// yoda_says.right_rot(11);
     /// assert_eq!("failure is the greatest teacher ", yoda_says.into_iter().collect::<String>())

@@ -1,5 +1,5 @@
 [package]
-name = "cll"
+name = "cdll"
 description = "A circular doubly linked list"
 authors = ["me@alain.dev"]
 version = "0.1.0"
