@@ -32,7 +32,7 @@ use {
 };
 
 /// Create a list with provided elements.
-/// # Exemple
+/// # Example
 /// ```
 /// # use cll::list;
 /// let primes = list![2, 3, 5, 7, 11];
@@ -154,6 +154,7 @@ impl<T> CircularList<T> {
     }
 
     /// Exchanges the place of the element at position `i` and the element at position `j`.
+    /// This operation has `O(n)` complexity.
     pub fn swap(&mut self, i: usize, j: usize) {
         // Do nothing if list is empty
         if self.is_empty() {
@@ -197,6 +198,8 @@ impl<T> CircularList<T> {
             self.head = item1 as *const _;
         }
     }
+
+    /// Assembles this list with another by putting all its elements at the end the list.
     pub fn merge(&mut self, mut other: Self) {
         if self.head.is_null() {
             self.head = other.head;
@@ -211,12 +214,24 @@ impl<T> CircularList<T> {
                 ListHead::<T>::add_list(other_head, head);
             }
         }
+
+        // Preserving invariant (1)
         self.length += other.length;
 
         // `other` must be in valid state when being dropped.
         other.head = ptr::null();
         other.length = 0;
     }
+
+    /// Moves the head `count` steps to the left.
+    ///
+    /// # Example
+    /// ```
+    /// # use cll::CircularList;
+    /// let mut yoda_says: CircularList<_> = "ready you are not ".chars().collect();
+    /// yoda_says.left_rot(6);
+    /// assert_eq!("you are not ready ", yoda_says.into_iter().collect::<String>())
+    /// ```
     pub fn left_rot(&mut self, count: usize) {
         // Do nothing if list is empty
         if self.is_empty() {
@@ -232,6 +247,16 @@ impl<T> CircularList<T> {
             };
         }
     }
+
+    /// Moves the head `count` steps to the right.
+    ///
+    /// # Example
+    /// ```
+    /// # use cll::CircularList;
+    /// let mut yoda_says: CircularList<_> = "the greatest teacher failure is ".chars().collect();
+    /// yoda_says.right_rot(11);
+    /// assert_eq!("failure is the greatest teacher ", yoda_says.into_iter().collect::<String>())
+    /// ```
     pub fn right_rot(&mut self, count: usize) {
         // Do nothing if list is empty
         if self.is_empty() {
@@ -247,6 +272,9 @@ impl<T> CircularList<T> {
             };
         }
     }
+
+    /// Returns an infinite iterator over the list except if it is empty, in which case the
+    /// returned iterator is also empty.
     pub fn iter_forever(&self) -> impl Iterator<Item = &T> {
         if self.is_empty() {
             Either::Left(std::iter::empty())
@@ -254,9 +282,14 @@ impl<T> CircularList<T> {
             Either::Right(Iter::new(self.head))
         }
     }
+
+    /// Returns an iterator over the list.
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.iter_forever().take(self.len())
     }
+
+    /// Returns an infinite iterator that allows modifying each value. The returned iterator is
+    /// empty if the list is empty.
     pub fn iter_mut_forever(&mut self) -> impl Iterator<Item = &mut T> {
         if self.is_empty() {
             Either::Left(std::iter::empty())
@@ -264,11 +297,14 @@ impl<T> CircularList<T> {
             Either::Right(IterMut::new(self.head as *mut _))
         }
     }
+
+    /// Returns an iterator that allows modifying each value.
     pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
         let len = self.len();
         self.iter_mut_forever().take(len)
     }
 }
+
 impl<T> Default for CircularList<T> {
     fn default() -> Self {
         Self {
@@ -277,6 +313,7 @@ impl<T> Default for CircularList<T> {
         }
     }
 }
+
 impl<T: Clone> Clone for CircularList<T> {
     fn clone(&self) -> Self {
         let mut clone: Self = Default::default();
@@ -286,6 +323,7 @@ impl<T: Clone> Clone for CircularList<T> {
         clone
     }
 }
+
 impl<T> FromIterator<T> for CircularList<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         let mut new: Self = Default::default();
@@ -295,11 +333,13 @@ impl<T> FromIterator<T> for CircularList<T> {
         new
     }
 }
+
 impl<T> Drop for CircularList<T> {
     fn drop(&mut self) {
         while self.remove().is_some() {}
     }
 }
+
 impl<T: std::fmt::Debug> std::fmt::Debug for CircularList<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_list().entries(self.iter()).finish()
