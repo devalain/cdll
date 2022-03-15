@@ -1,10 +1,11 @@
 [package]
 name = "cll"
+description = "A circular doubly linked list"
 authors = ["me@alain.dev"]
 version = "0.1.0"
-edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/devalain/cll"
 
 [dependencies]
 either = "1.6"
