@@ -223,7 +223,7 @@ impl<'life, T> Iterator for Iter<'life, T> {
         // Plus, the list is circular so next should always be non null if the list is non empty.
         let (current, next) = unsafe {
             let r = &*self.next;
-            (&r.value, (*r).next)
+            (&r.value, r.next)
         };
         self.next = next;
         Some(current)
@@ -252,7 +252,7 @@ impl<'life, T> Iterator for IterMut<'life, T> {
         // Plus, the list is circular so next should always be non null if the list is non empty.
         let (current, next) = unsafe {
             let r = &mut *self.next;
-            (&mut r.value, (*r).next as *mut _)
+            (&mut r.value, r.next as *mut _)
         };
         self.next = next;
         Some(current)
