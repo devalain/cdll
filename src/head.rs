@@ -266,3 +266,37 @@ impl<'life, T> IterMut<'life, T> {
         }
     }
 }
+
+// TODO https://doc.rust-lang.org/std/collections/linked_list/struct.Cursor.html
+// TODO https://doc.rust-lang.org/std/collections/linked_list/struct.LinkedList.html
+#[derive(Clone, Copy, PartialEq)]
+pub struct Cursor<'life, T> {
+    current: *const ListHead<T>,
+    _marker: PhantomData<&'life T>,
+}
+
+impl<'life, T> std::ops::Deref for Cursor<'life, T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { &(*self.current).value }
+    }
+}
+impl<'life, T: std::fmt::Debug> std::fmt::Debug for Cursor<'life, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        (&**self).fmt(f)
+    }
+}
+impl<'life, T: std::fmt::Display> std::fmt::Display for Cursor<'life, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        (&**self).fmt(f)
+    }
+}
+impl<'life, T> From<*const ListHead<T>> for Cursor<'life, T> {
+    fn from(head: *const ListHead<T>) -> Self {
+        Self {
+            current: head,
+            _marker: Default::default(),
+        }
+    }
+}
