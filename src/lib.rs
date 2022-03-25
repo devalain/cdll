@@ -25,10 +25,12 @@
 
 mod head;
 
+pub use head::cursor::Cursor;
+
 use {
     crate::head::{Iter, IterMut, ListHead},
     either::Either,
-    std::{iter::FromIterator, ptr},
+    std::{iter::FromIterator, ops::Not, ptr},
 };
 
 /// Create a list with provided elements.
@@ -313,6 +315,13 @@ impl<T> CircularList<T> {
         let len = self.len();
         self.iter_mut_forever().take(len)
     }
+
+    /// Returns some [`Cursor`] pointing to the first element of the list (if any).
+    pub fn cursor(&self) -> Option<Cursor<T>> {
+        self.is_empty()
+            .not()
+            .then(|| Cursor::from_list_head_ptr(self.head))
+    }
 }
 
 impl<T> Default for CircularList<T> {
@@ -521,5 +530,32 @@ mod tests {
         a.append(list![]);
         assert_eq!(a.len(), 0);
         assert_eq!(a.into_iter().collect::<Vec<i32>>(), &[]);
+    }
+
+    #[test]
+    fn cursor_empty_list() {
+        assert_eq!(CircularList::<()>::default().cursor(), None)
+    }
+
+    #[test]
+    fn cursor() {
+        let list = list![1, 2, 3, 4, 5];
+        let mut c1 = list
+            .cursor()
+            .expect("A cursor should always be available on a non empty list");
+
+        assert_eq!(c1.value(), &1);
+
+        c1.move_prev();
+        assert_eq!(c1.value(), &5);
+
+        for _ in 0..5 {
+            c1.move_next();
+        }
+        assert_eq!(c1.value(), &5);
+
+        c1.move_next();
+        c1.move_next();
+        assert_eq!(c1.value(), &2);
     }
 }
