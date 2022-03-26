@@ -292,7 +292,7 @@ impl<T> CircularList<T> {
         if self.is_empty() {
             Either::Left(std::iter::empty())
         } else {
-            Either::Right(Iter::new(self.head))
+            Either::Right(Iter::new(self))
         }
     }
 
@@ -307,7 +307,7 @@ impl<T> CircularList<T> {
         if self.is_empty() {
             Either::Left(std::iter::empty())
         } else {
-            Either::Right(IterMut::new(self.head as *mut _))
+            Either::Right(IterMut::new(self))
         }
     }
 

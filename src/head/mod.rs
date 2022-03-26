@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, ptr};
+use {crate::CircularList, std::ptr};
 
 pub mod cursor;
 
@@ -227,8 +227,8 @@ impl<T> ListHead<T> {
 
 /// Circular list iterator.
 pub struct Iter<'life, T> {
+    _list: &'life CircularList<T>,
     next: *const ListHead<T>,
-    _marker: PhantomData<&'life T>,
 }
 impl<'life, T> Iterator for Iter<'life, T> {
     type Item = &'life T;
@@ -246,18 +246,19 @@ impl<'life, T> Iterator for Iter<'life, T> {
     }
 }
 impl<'life, T> Iter<'life, T> {
-    pub fn new(first: *const ListHead<T>) -> Self {
+    pub fn new(list: &'life CircularList<T>) -> Self {
+        let first = list.head;
         Self {
+            _list: list,
             next: first,
-            _marker: PhantomData::default(),
         }
     }
 }
 
 /// Circular list iterator with mutability.
 pub struct IterMut<'life, T> {
+    _list: &'life mut CircularList<T>,
     next: *mut ListHead<T>,
-    _marker: PhantomData<&'life T>,
 }
 impl<'life, T> Iterator for IterMut<'life, T> {
     type Item = &'life mut T;
@@ -275,10 +276,11 @@ impl<'life, T> Iterator for IterMut<'life, T> {
     }
 }
 impl<'life, T> IterMut<'life, T> {
-    pub fn new(first: *mut ListHead<T>) -> Self {
+    pub fn new(list: &'life mut CircularList<T>) -> Self {
+        let first = list.head as *mut _;
         Self {
+            _list: list,
             next: first,
-            _marker: PhantomData::default(),
         }
     }
 }
