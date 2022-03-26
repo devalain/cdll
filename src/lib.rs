@@ -597,9 +597,42 @@ mod tests {
             .expect("A cursor should always be available on a non empty list");
 
         dc.move_next_b();
-        dc.put_a_after_b();
+        dc.insert_a_after_b();
         // This function is idempotent
-        dc.put_a_after_b();
+        dc.insert_a_after_b();
         assert_eq!(list.into_iter().collect::<Vec<i32>>(), &[2, 1, 3, 4, 5]);
+    }
+
+    #[test]
+    fn double_cursor_sort() {
+        let mut list = list![3, 1, 8, 21, 5, 9, 12, 5, 2, 6, 6, 6, 13, 2, 17];
+        let len = list.len();
+        let mut dc = list
+            .double_cursor()
+            .expect("A cursor should always be available on a non empty list");
+
+        let mut min = *dc.value_a();
+        for i in 1..len {
+            dc.set_b_to_a();
+            dc.push_a();
+            for _ in i..len {
+                dc.move_next_a();
+                let val = *dc.value_a();
+                if val < min {
+                    min = val;
+                    dc.set_b_to_a();
+                }
+            }
+            dc.pop_a();
+            dc.insert_b_before_a();
+            if dc.a_is_b() {
+                dc.move_next_a();
+            }
+            min = *dc.value_a();
+        }
+        assert_eq!(
+            list.into_iter().collect::<Vec<i32>>(),
+            &[1, 2, 2, 3, 5, 5, 6, 6, 6, 8, 9, 12, 13, 17, 21]
+        );
     }
 }

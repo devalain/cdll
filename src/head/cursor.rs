@@ -74,12 +74,14 @@ impl<'life, T: std::fmt::Display> std::fmt::Display for Cursor<'life, T> {
 }
 
 /// A `DoubleCursor` is a `struct` that points to 2 elements 'a' and 'b' of a [`CircularList`].
-/// One can then [`swap`](`Self::swap`) the 2 elements or put the first after the seconds etc.
+/// One can then [`swap`](`Self::swap`) the 2 elements or put the first after the second etc.
+#[derive(Debug)]
 pub struct DoubleCursor<'life, T> {
     list: &'life mut CircularList<T>,
     // Invariant (5): `a` and `b` are always valid pointers
     a: *const ListHead<T>,
     b: *const ListHead<T>,
+    stack: Vec<*const ListHead<T>>,
 }
 
 impl<'life, T> DoubleCursor<'life, T> {
@@ -96,7 +98,13 @@ impl<'life, T> DoubleCursor<'life, T> {
             list,
             a: head,
             b: head,
+            stack: Vec::new(),
         }
+    }
+
+    /// Returns `true` if the 'a' cursor points to the same element as the 'b cursor.
+    pub fn a_is_b(&self) -> bool {
+        self.a == self.b
     }
 
     /// Moves the 'a' cursor to the next element of the `CircularList`.
@@ -152,6 +160,50 @@ impl<'life, T> DoubleCursor<'life, T> {
         (self.a, self.b) = (self.b, self.a)
     }
 
+    /// Sets the position of the 'a' cursor to the head of the list.
+    pub fn reset_a(&mut self) {
+        self.a = self.list.head;
+    }
+
+    /// Sets the position of the 'b' cursor to the head of the list.
+    pub fn reset_b(&mut self) {
+        self.b = self.list.head;
+    }
+
+    /// Sets the position of the 'b' cursor to the same as the 'a' cursor.
+    pub fn set_b_to_a(&mut self) {
+        self.b = self.a;
+    }
+
+    /// Sets the position of the 'a' cursor to the same as the 'b' cursor.
+    pub fn set_a_to_b(&mut self) {
+        self.a = self.b;
+    }
+
+    /// Saves the position of the 'a' cursor on a stack (internal to `Self`).
+    pub fn push_a(&mut self) {
+        self.stack.push(self.a);
+    }
+
+    /// Saves the position of the 'b' cursor on a stack (internal to `Self`).
+    pub fn push_b(&mut self) {
+        self.stack.push(self.b);
+    }
+
+    /// Load the position of the 'a' cursor to the last saved position of 'b' or 'a'.
+    pub fn pop_a(&mut self) {
+        if let Some(a) = self.stack.pop() {
+            self.a = a;
+        }
+    }
+
+    /// Load the position of the 'b' cursor to the last saved position of 'b' or 'a'.
+    pub fn pop_b(&mut self) {
+        if let Some(b) = self.stack.pop() {
+            self.b = b;
+        }
+    }
+
     /// Swaps the list nodes pointed by the 'a' and 'b' cursors. It is a `O(1)` operation.
     pub fn swap(&mut self) {
         unsafe {
@@ -168,11 +220,11 @@ impl<'life, T> DoubleCursor<'life, T> {
 
     /// Displaces the element pointed by the 'a' cursor next to the element pointed by the 'b'
     /// cursor.
-    pub fn put_a_after_b(&mut self) {
+    pub fn insert_a_after_b(&mut self) {
         unsafe {
             // SAFETY: Invariant (5) asserts that `self.a` and `self.b` are valid. Invariant (3)
             // asserts that it is part of a valid circular linked list.
-            if (*self.a).prev == self.b {
+            if (*self.a).prev == self.b || self.a == self.b {
                 // `self.a` is already in the good place.
                 return;
             }
@@ -180,6 +232,26 @@ impl<'life, T> DoubleCursor<'life, T> {
                 self.list.head = (*self.a).next;
             }
             ListHead::<T>::move_entry(self.a as *mut _, self.b as *mut _, (*self.b).next as *mut _);
+        }
+    }
+
+    /// Displaces the element pointed by the 'b' cursor before the element pointed by the 'a'
+    /// cursor.
+    pub fn insert_b_before_a(&mut self) {
+        unsafe {
+            // SAFETY: Invariant (5) asserts that `self.a` and `self.b` are valid. Invariant (3)
+            // asserts that it is part of a valid circular linked list.
+            if (*self.a).prev == self.b || self.a == self.b {
+                // `self.b` is already in the good place.
+                return;
+            }
+            if self.b == self.list.head {
+                self.list.head = (*self.b).next;
+            }
+            if self.a == self.list.head {
+                self.list.head = self.b;
+            }
+            ListHead::<T>::move_entry(self.b as *mut _, (*self.a).prev as *mut _, self.a as *mut _);
         }
     }
 }
