@@ -60,7 +60,8 @@ impl<T> ListHead<T> {
     /// ```
     ///
     /// # Safety
-    /// * `next`, `new` and `prev` must be valid pointers.
+    /// * `next`, `new` and `prev` must be valid pointers
+    /// * `next` should be the next of `prev` and `prev` should be the previous of `next`
     /// * `new` must be disconnected from its old place (i.e. with `__del` or `__replace`) before
     /// calling this function otherwise it would break invariant (3).
     unsafe fn __add(new: *mut Self, prev: *mut Self, next: *mut Self) {
@@ -185,6 +186,19 @@ impl<T> ListHead<T> {
         // `pos` and `(*pos).next` are valid according to invariant (3) and `entry1` was just
         // disconnected from its old place.
         Self::__add(entry1 as *mut _, pos as *mut _, (*pos).next as *mut _);
+    }
+
+    /// Moves out `entry` and inserts it between `prev` and `next`.
+    ///
+    /// # Safety
+    /// The caller must give valid pointers and make sure `next` is the next element of `prev`
+    /// otherwise there could be memory leaks.
+    pub unsafe fn move_entry(entry: *mut Self, prev: *mut Self, next: *mut Self) {
+        // `(*entry).prev` and `(*entry).next` should be valid according to invariant (3)
+        Self::__del((*entry).prev as *mut _, (*entry).next as *mut _);
+        // We know `entry` is valid and `next` and `prev` are consecutive (because of course the
+        // caller is cautious)
+        Self::__add(entry, prev, next);
     }
 
     /// Insert `list` before `next`.

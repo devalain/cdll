@@ -25,7 +25,7 @@
 
 mod head;
 
-pub use head::cursor::Cursor;
+pub use head::cursor::{Cursor, DoubleCursor};
 
 use {
     crate::head::{Iter, IterMut, ListHead},
@@ -166,7 +166,8 @@ impl<T> CircularList<T> {
     }
 
     /// Exchanges the place of the element at position `i` and the element at position `j`.
-    /// This operation has `O(n)` complexity.
+    /// This operation has `O(n)` complexity. For a constant time swap operation, see
+    /// [`double_cursor`](`Self::double_cursor`) and [`DoubleCursor::swap`].
     pub fn exchange(&mut self, i: usize, j: usize) {
         // Do nothing if list is empty
         if self.is_empty() {
@@ -318,9 +319,13 @@ impl<T> CircularList<T> {
 
     /// Returns some [`Cursor`] pointing to the first element of the list (if any).
     pub fn cursor(&self) -> Option<Cursor<T>> {
-        self.is_empty()
-            .not()
-            .then(|| Cursor::from_list_head_ptr(self.head))
+        self.is_empty().not().then(|| Cursor::from_list(self))
+    }
+
+    /// Returns some [`DoubleCursor`] where the 'a' and the 'b' parts are pointing both to the
+    /// first element of the list (if any).
+    pub fn double_cursor(&mut self) -> Option<DoubleCursor<T>> {
+        self.is_empty().not().then(|| DoubleCursor::from_list(self))
     }
 }
 
@@ -557,5 +562,44 @@ mod tests {
         c1.move_next();
         c1.move_next();
         assert_eq!(c1.value(), &2);
+    }
+
+    #[test]
+    fn double_cursor_empty_list() {
+        assert!(matches!(
+            CircularList::<()>::default().double_cursor(),
+            None
+        ))
+    }
+
+    #[test]
+    fn double_cursor_swap() {
+        let mut list = list![1, 2, 3, 4, 5];
+        let mut dc = list
+            .double_cursor()
+            .expect("A cursor should always be available on a non empty list");
+
+        dc.move_next_b();
+        dc.swap();
+        assert_eq!(list.into_iter().collect::<Vec<i32>>(), &[2, 1, 3, 4, 5]);
+
+        let mut list = list![0];
+        let mut dc = list.double_cursor().unwrap();
+        dc.swap();
+        assert_eq!(list.into_iter().collect::<Vec<i32>>(), &[0]);
+    }
+
+    #[test]
+    fn double_cursor_move() {
+        let mut list = list![1, 2, 3, 4, 5];
+        let mut dc = list
+            .double_cursor()
+            .expect("A cursor should always be available on a non empty list");
+
+        dc.move_next_b();
+        dc.put_a_after_b();
+        // This function is idempotent
+        dc.put_a_after_b();
+        assert_eq!(list.into_iter().collect::<Vec<i32>>(), &[2, 1, 3, 4, 5]);
     }
 }
