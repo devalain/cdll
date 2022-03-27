@@ -639,9 +639,13 @@ mod tests {
     #[test]
     fn double_cursor_split_empty() {
         let mut list = list![1, 2, 3, 4, 5];
-        let mut dc = list.double_cursor().unwrap();
+        let dc = list.double_cursor().unwrap();
+
         let list2 = dc.split_at_a();
-        assert!(list2.is_empty());
+        let v2 = list2.into_iter().collect::<Vec<i32>>();
+
+        assert_eq!(v2, &[1, 2, 3, 4, 5]);
+        assert!(list.is_empty());
     }
 
     #[test]

@@ -89,6 +89,7 @@ pub struct DoubleCursor<'life, T> {
     stack: Vec<(*const ListHead<T>, usize)>,
 }
 
+// Private functions
 impl<'life, T> DoubleCursor<'life, T> {
     /// Builds a `DoubleCursor` from a [`CircularList`].
     /// # Panics
@@ -109,6 +110,30 @@ impl<'life, T> DoubleCursor<'life, T> {
         }
     }
 
+    /// Cuts the list at `new_head` and create a new list from there.
+    ///
+    /// # Note
+    /// The `DoubleCursor` is consumed in the operation.
+    fn split_at(self, new_head: *mut ListHead<T>, idx: usize) -> CircularList<T> {
+        let head = self.list.head as *mut _;
+        if head == new_head {
+            return core::mem::take(self.list);
+        }
+        unsafe {
+            // SAFETY: TODO
+            ListHead::<T>::split(head, new_head);
+        }
+
+        let new_list = CircularList {
+            head: new_head,
+            length: self.list.length - idx,
+        };
+        self.list.length = idx;
+        new_list
+    }
+}
+
+impl<'life, T> DoubleCursor<'life, T> {
     /// Returns `true` if the 'a' cursor points to the same element as the 'b cursor.
     pub fn a_is_b(&self) -> bool {
         self.a == self.b
@@ -234,24 +259,24 @@ impl<'life, T> DoubleCursor<'life, T> {
         }
     }
 
-    // TODO
-    pub fn split_at_a(&mut self) -> CircularList<T> {
-        let head = self.list.head as *mut _;
-        let new_head = self.a as *mut _;
-        if head == new_head {
-            return CircularList::default();
-        }
-        unsafe {
-            // TODO SAFETY doc
-            ListHead::<T>::split(head, new_head);
-        }
+    /// Cuts the list at the position pointing on the 'a' cursor.
+    ///
+    /// # Note
+    /// The `DoubleCursor` is consumed in the operation.
+    pub fn split_at_a(self) -> CircularList<T> {
+        let a = self.a as *mut _;
+        let idx_a = self.idx_a;
+        self.split_at(a, idx_a)
+    }
 
-        let new_list = CircularList {
-            head: new_head,
-            length: self.list.length - self.idx_a,
-        };
-        self.list.length = self.idx_a;
-        new_list
+    /// Cuts the list at the position pointing on the 'b' cursor.
+    ///
+    /// # Note
+    /// The `DoubleCursor` is consumed in the operation.
+    pub fn split_at_b(self) -> CircularList<T> {
+        let b = self.b as *mut _;
+        let idx_b = self.idx_b;
+        self.split_at(b, idx_b)
     }
 
     /// Displaces the element pointed by the 'a' cursor next to the element pointed by the 'b'
