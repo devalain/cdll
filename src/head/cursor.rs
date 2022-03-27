@@ -229,6 +229,7 @@ impl<'life, T> DoubleCursor<'life, T> {
                 return;
             }
             if self.a == self.list.head {
+                // keep the head in its place
                 self.list.head = (*self.a).next;
             }
             ListHead::<T>::move_entry(self.a as *mut _, self.b as *mut _, (*self.b).next as *mut _);
@@ -246,9 +247,11 @@ impl<'life, T> DoubleCursor<'life, T> {
                 return;
             }
             if self.b == self.list.head {
+                // keep the head in its place
                 self.list.head = (*self.b).next;
             }
             if self.a == self.list.head {
+                // Inserting before the head means not at the end of the list
                 self.list.head = self.b;
             }
             ListHead::<T>::move_entry(self.b as *mut _, (*self.a).prev as *mut _, self.a as *mut _);
