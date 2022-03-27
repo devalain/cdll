@@ -78,10 +78,15 @@ impl<'life, T: core::fmt::Display> core::fmt::Display for Cursor<'life, T> {
 #[derive(Debug)]
 pub struct DoubleCursor<'life, T> {
     list: &'life mut CircularList<T>,
-    // Invariant (5): `a` and `b` are always valid pointers
+    // Invariant (5):
+    // * `a` and `b` are always valid pointers
+    // * The `idx_a` and `idx_b` are always equal to the number of steps between the head and the
+    // position of `a` and `b` respectively
     a: *const ListHead<T>,
     b: *const ListHead<T>,
-    stack: Vec<*const ListHead<T>>,
+    idx_a: usize,
+    idx_b: usize,
+    stack: Vec<(*const ListHead<T>, usize)>,
 }
 
 impl<'life, T> DoubleCursor<'life, T> {
@@ -98,6 +103,8 @@ impl<'life, T> DoubleCursor<'life, T> {
             list,
             a: head,
             b: head,
+            idx_a: 0,
+            idx_b: 0,
             stack: Vec::new(),
         }
     }
@@ -114,6 +121,7 @@ impl<'life, T> DoubleCursor<'life, T> {
             // a valid circular linked list
             self.a = (*self.a).next;
         }
+        self.idx_a += 1;
     }
 
     /// Moves the 'b' cursor to the next element of the `CircularList`.
@@ -123,6 +131,7 @@ impl<'life, T> DoubleCursor<'life, T> {
             // a valid circular linked list
             self.b = (*self.b).next;
         }
+        self.idx_b += 1;
     }
 
     /// Moves the 'a' cursor to the previous element of the `CircularList`.
@@ -132,6 +141,7 @@ impl<'life, T> DoubleCursor<'life, T> {
             // a valid circular linked list
             self.a = (*self.a).prev;
         }
+        self.idx_a -= 1;
     }
 
     /// Moves the 'b' cursor to the previous element of the `CircularList`.
@@ -141,6 +151,7 @@ impl<'life, T> DoubleCursor<'life, T> {
             // a valid circular linked list
             self.b = (*self.b).prev;
         }
+        self.idx_b -= 1;
     }
 
     /// Returns the value of the list element behind the 'a' cursor.
@@ -157,50 +168,55 @@ impl<'life, T> DoubleCursor<'life, T> {
 
     /// Swaps the 'a' and 'b' cursors of this `DoubleCursor`.
     pub fn swap_cursors(&mut self) {
-        (self.a, self.b) = (self.b, self.a)
+        (self.a, self.b) = (self.b, self.a);
+        (self.idx_a, self.idx_b) = (self.idx_b, self.idx_a);
     }
 
     /// Sets the position of the 'a' cursor to the head of the list.
     pub fn reset_a(&mut self) {
         self.a = self.list.head;
+        self.idx_a = 0;
     }
 
     /// Sets the position of the 'b' cursor to the head of the list.
     pub fn reset_b(&mut self) {
         self.b = self.list.head;
+        self.idx_b = 0;
     }
 
     /// Sets the position of the 'b' cursor to the same as the 'a' cursor.
     pub fn set_b_to_a(&mut self) {
         self.b = self.a;
+        self.idx_b = self.idx_a;
     }
 
     /// Sets the position of the 'a' cursor to the same as the 'b' cursor.
     pub fn set_a_to_b(&mut self) {
         self.a = self.b;
+        self.idx_a = self.idx_b;
     }
 
     /// Saves the position of the 'a' cursor on a stack (internal to `Self`).
     pub fn push_a(&mut self) {
-        self.stack.push(self.a);
+        self.stack.push((self.a, self.idx_a));
     }
 
     /// Saves the position of the 'b' cursor on a stack (internal to `Self`).
     pub fn push_b(&mut self) {
-        self.stack.push(self.b);
+        self.stack.push((self.b, self.idx_b));
     }
 
     /// Load the position of the 'a' cursor to the last saved position of 'b' or 'a'.
     pub fn pop_a(&mut self) {
-        if let Some(a) = self.stack.pop() {
-            self.a = a;
+        if let Some((a, idx_a)) = self.stack.pop() {
+            (self.a, self.idx_a) = (a, idx_a);
         }
     }
 
     /// Load the position of the 'b' cursor to the last saved position of 'b' or 'a'.
     pub fn pop_b(&mut self) {
-        if let Some(b) = self.stack.pop() {
-            self.b = b;
+        if let Some((b, idx_b)) = self.stack.pop() {
+            (self.b, self.idx_b) = (b, idx_b);
         }
     }
 
@@ -216,6 +232,26 @@ impl<'life, T> DoubleCursor<'life, T> {
         } else if self.b == self.list.head {
             self.list.head = self.a;
         }
+    }
+
+    // TODO
+    pub fn split_at_a(&mut self) -> CircularList<T> {
+        let head = self.list.head as *mut _;
+        let new_head = self.a as *mut _;
+        if head == new_head {
+            return CircularList::default();
+        }
+        unsafe {
+            // TODO SAFETY doc
+            ListHead::<T>::split(head, new_head);
+        }
+
+        let new_list = CircularList {
+            head: new_head,
+            length: self.list.length - self.idx_a,
+        };
+        self.list.length = self.idx_a;
+        new_list
     }
 
     /// Displaces the element pointed by the 'a' cursor next to the element pointed by the 'b'

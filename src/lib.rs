@@ -635,4 +635,27 @@ mod tests {
             &[1, 2, 2, 3, 5, 5, 6, 6, 6, 8, 9, 12, 13, 17, 21]
         );
     }
+
+    #[test]
+    fn double_cursor_split_empty() {
+        let mut list = list![1, 2, 3, 4, 5];
+        let mut dc = list.double_cursor().unwrap();
+        let list2 = dc.split_at_a();
+        assert!(list2.is_empty());
+    }
+
+    #[test]
+    fn double_cursor_split() {
+        let mut list = list![1, 2, 3, 4, 5];
+        let mut dc = list.double_cursor().unwrap();
+
+        dc.move_next_a();
+        dc.move_next_a();
+        let list2 = dc.split_at_a();
+
+        let v1 = list.into_iter().collect::<Vec<i32>>();
+        let v2 = list2.into_iter().collect::<Vec<i32>>();
+        assert_eq!(v1, &[1, 2]);
+        assert_eq!(v2, &[3, 4, 5]);
+    }
 }

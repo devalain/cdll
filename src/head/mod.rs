@@ -217,11 +217,29 @@ impl<T> ListHead<T> {
         // Preserving invariant (3): as soon as `list` is part of a valid circular list as well as
         // `next`, the connections made here will create 1 or 2 valid circular list(s).
 
+        // TODO use __del
         (*next).prev = last_of_list;
         (*last_of_list).next = next; // The end of `list` is connected to `next`
 
+        // TODO use __del
         (*list).prev = prev;
         (*prev).next = list; // The beginning of `list` is connected to the element before `next`
+    }
+
+    /// Cut a circular list in two parts.
+    ///
+    /// # Safety
+    /// * `head` and `new_head` must be valid pointers
+    /// * `new_head` **must** be the head of a newly created `CircularList`
+    pub unsafe fn split(head: *mut Self, new_head: *mut Self) {
+        // The last element of the list where `new_head` is the head.
+        let new_tail = (*head).prev as *mut _;
+
+        // close the list where `head` is the head
+        Self::__del((*new_head).prev as *mut Self, head);
+
+        // close the list where `new_head` is the head
+        Self::__del(new_tail, new_head);
     }
 }
 
