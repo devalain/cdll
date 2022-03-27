@@ -10,7 +10,7 @@ pub struct Cursor<'life, T> {
     current: *const ListHead<T>,
 }
 
-impl<'life, T> std::cmp::PartialEq for Cursor<'life, T> {
+impl<'life, T> core::cmp::PartialEq for Cursor<'life, T> {
     fn eq(&self, other: &Self) -> bool {
         self.list.head == other.list.head && self.current == other.current
     }
@@ -61,14 +61,14 @@ impl<'life, T> Cursor<'life, T> {
     }
 }
 
-impl<'life, T: std::fmt::Debug> std::fmt::Debug for Cursor<'life, T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<'life, T: core::fmt::Debug> core::fmt::Debug for Cursor<'life, T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.value().fmt(f)
     }
 }
 
-impl<'life, T: std::fmt::Display> std::fmt::Display for Cursor<'life, T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<'life, T: core::fmt::Display> core::fmt::Display for Cursor<'life, T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.value().fmt(f)
     }
 }

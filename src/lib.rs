@@ -290,7 +290,7 @@ impl<T> CircularList<T> {
     /// returned iterator is also empty.
     pub fn iter_forever(&self) -> impl Iterator<Item = &T> {
         if self.is_empty() {
-            Either::Left(std::iter::empty())
+            Either::Left(core::iter::empty())
         } else {
             Either::Right(Iter::new(self))
         }
@@ -305,7 +305,7 @@ impl<T> CircularList<T> {
     /// empty if the list is empty.
     pub fn iter_mut_forever(&mut self) -> impl Iterator<Item = &mut T> {
         if self.is_empty() {
-            Either::Left(std::iter::empty())
+            Either::Left(core::iter::empty())
         } else {
             Either::Right(IterMut::new(self))
         }
@@ -364,8 +364,8 @@ impl<T> Drop for CircularList<T> {
     }
 }
 
-impl<T: std::fmt::Debug> std::fmt::Debug for CircularList<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<T: core::fmt::Debug> core::fmt::Debug for CircularList<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_list().entries(self.iter()).finish()
     }
 }
