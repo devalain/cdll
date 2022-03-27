@@ -29,8 +29,8 @@ pub use head::cursor::{Cursor, DoubleCursor};
 
 use {
     crate::head::{Iter, IterMut, ListHead},
+    core::{iter::FromIterator, ops::Not, ptr},
     either::Either,
-    std::{iter::FromIterator, ops::Not, ptr},
 };
 
 /// Create a list with provided elements.

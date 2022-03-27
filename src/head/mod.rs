@@ -1,4 +1,4 @@
-use {crate::CircularList, std::ptr};
+use {crate::CircularList, core::ptr};
 
 pub mod cursor;
 
