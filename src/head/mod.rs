@@ -312,3 +312,15 @@ impl<'life, T> IterMut<'life, T> {
         }
     }
 }
+
+impl<T: core::cmp::PartialEq> core::cmp::PartialEq for ListHead<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.value.eq(&other.value)
+    }
+}
+
+impl<T: core::cmp::PartialOrd> core::cmp::PartialOrd for ListHead<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        self.value.partial_cmp(&other.value)
+    }
+}
