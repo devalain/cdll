@@ -111,7 +111,7 @@ impl<T> ListHead<T> {
         (next, to_del.value)
     }
 
-    /// Inserts an element behind this one.
+    /// Inserts an element before this one.
     pub fn add(&mut self, new: &mut Self) {
         unsafe {
             // SAFETY: Since `self` and `new` are borrow checked references, it must be true that
