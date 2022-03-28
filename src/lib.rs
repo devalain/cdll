@@ -73,6 +73,20 @@ pub struct CircularList<T> {
     // Invariant (2): It is updated each time an element is added to the list or removed from it.
     length: usize,
 }
+
+// private functions
+impl<T> CircularList<T> {
+    /// TODO document
+    unsafe fn insert_after(&mut self, val: T, element: *mut ListHead<T>) {
+        let new = Box::leak(ListHead::<T>::new(val));
+
+        (*element).add_after(new);
+
+        // Preserving invariant (2)
+        self.length += 1;
+    }
+}
+
 impl<T> CircularList<T> {
     /// Gets the size of the list.
     pub fn len(&self) -> usize {

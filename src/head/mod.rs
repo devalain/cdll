@@ -121,6 +121,16 @@ impl<T> ListHead<T> {
         }
     }
 
+    /// Inserts an element after this one.
+    pub fn add_after(&mut self, new: &mut Self) {
+        unsafe {
+            // SAFETY: Since `self` and `new` are borrow checked references, it must be true that
+            // they are valid pointers. As for the `prev` parameter, it is the same as `self` or
+            // another valid pointer according to invariant (3).
+            Self::__add(new, self, self.next as *mut _);
+        }
+    }
+
     /// Deletes an element.
     ///
     /// # Safety

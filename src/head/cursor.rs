@@ -320,4 +320,27 @@ impl<'life, T> DoubleCursor<'life, T> {
             ListHead::<T>::move_entry(self.b as *mut _, (*self.a).prev as *mut _, self.a as *mut _);
         }
     }
+
+    /// TODO doc
+    pub fn insert_value_after_a(&mut self, val: T) {
+        unsafe {
+            // SAFETY: TODO
+            self.list.insert_after(val, self.a as *mut _)
+        }
+        if self.idx_a < self.idx_b {
+            self.idx_b += 1;
+        }
+    }
+
+    /// TODO doc
+    pub fn insert_value_after_b(&mut self, val: T) {
+        unsafe {
+            // SAFETY: TODO
+            self.list.insert_after(val, self.b as *mut _)
+        }
+        if self.idx_b < self.idx_a {
+            self.idx_a += 1;
+        }
+    }
+}
 }
