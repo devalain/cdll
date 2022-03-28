@@ -250,6 +250,53 @@ impl<T> CircularList<T> {
         other.length = 0;
     }
 
+    /// Assembles this list with another by keeping the elements sorted.
+    /// It is assumed that the 2 lists are sorted.
+    pub fn merge(&mut self, mut other: Self)
+    where
+        T: core::cmp::PartialOrd,
+    {
+        if self.is_empty() {
+            self.append(other);
+        } else if other.is_empty().not() {
+            let mut s = self.head as *mut ListHead<T>;
+            let mut s_head = s;
+            let mut o = other.head as *mut ListHead<T>;
+            unsafe {
+                let mut s_next = (*s).next() as *mut ListHead<T>;
+                let mut o_next = (*o).next() as *mut ListHead<T>;
+                let o_end = (*o).prev() as *mut ListHead<T>;
+                if *o < *s {
+                    self.head = o;
+                    s_head = o;
+                }
+                let mut reached_end_of_s = false;
+                loop {
+                    if *o < *s || reached_end_of_s {
+                        ListHead::move_entry(o, (*s).prev() as *mut _, s);
+                        if o == o_end {
+                            // We reached the last element of `other`
+                            break;
+                        }
+                        o = o_next;
+                        o_next = (*o).next() as *mut ListHead<T>;
+                    } else {
+                        s = s_next;
+                        s_next = (*s).next() as *mut ListHead<T>;
+                        reached_end_of_s = s == s_head;
+                    }
+                }
+            }
+
+            // Preserving invariant (1)
+            self.length += other.length;
+
+            // `other` must be in valid state when being dropped.
+            other.head = ptr::null();
+            other.length = 0;
+        }
+    }
+
     /// Moves the head `count` steps to the left.
     ///
     /// # Example
