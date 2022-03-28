@@ -599,128 +599,24 @@ mod tests {
     }
 
     #[test]
-    fn cursor_empty_list() {
-        assert_eq!(CircularList::<()>::default().cursor(), None)
-    }
-
-    #[test]
-    fn cursor() {
-        let list = list![1, 2, 3, 4, 5];
-        let mut c1 = list
-            .cursor()
-            .expect("A cursor should always be available on a non empty list");
-
-        assert_eq!(c1.value(), &1);
-
-        c1.move_prev();
-        assert_eq!(c1.value(), &5);
-
-        for _ in 0..5 {
-            c1.move_next();
+    fn merge() {
+        for (mut a, b, c) in [
+            (list![1, 2, 3], list![], vec![1, 2, 3]),
+            (list![], list![1, 2, 3], vec![1, 2, 3]),
+            (list![1], list![0], vec![0, 1]),
+            (list![1], list![0], vec![0, 1]),
+            (list![1, 2, 3], list![4, 5, 6], vec![1, 2, 3, 4, 5, 6]),
+            (list![1, 3, 5], list![2, 4, 6], vec![1, 2, 3, 4, 5, 6]),
+            (list![1, 3, 5], list![0, 2, 4, 6], vec![0, 1, 2, 3, 4, 5, 6]),
+            (list![1, 3, 5], list![2, 4], vec![1, 2, 3, 4, 5]),
+            (list![1, 3, 5], list![2, 2, 4, 4], vec![1, 2, 2, 3, 4, 4, 5]),
+            (list![1, 3], list![0, 0, 4, 8], vec![0, 0, 1, 3, 4, 8]),
+            (list![7, 8, 9], list![1, 2, 8], vec![1, 2, 7, 8, 8, 9]),
+            (list![5, 5, 6], list![5, 8, 9], vec![5, 5, 5, 6, 8, 9]),
+            (list![1, 2, 3], list![1, 2, 3], vec![1, 1, 2, 2, 3, 3]),
+        ] {
+            a.merge(b);
+            assert_eq!(a.into_iter().collect::<Vec<i32>>(), c);
         }
-        assert_eq!(c1.value(), &5);
-
-        c1.move_next();
-        c1.move_next();
-        assert_eq!(c1.value(), &2);
-    }
-
-    #[test]
-    fn double_cursor_empty_list() {
-        assert!(matches!(
-            CircularList::<()>::default().double_cursor(),
-            None
-        ))
-    }
-
-    #[test]
-    fn double_cursor_swap() {
-        let mut list = list![1, 2, 3, 4, 5];
-        let mut dc = list
-            .double_cursor()
-            .expect("A cursor should always be available on a non empty list");
-
-        dc.move_next_b();
-        dc.swap();
-        assert_eq!(list.into_iter().collect::<Vec<i32>>(), &[2, 1, 3, 4, 5]);
-
-        let mut list = list![0];
-        let mut dc = list.double_cursor().unwrap();
-        dc.swap();
-        assert_eq!(list.into_iter().collect::<Vec<i32>>(), &[0]);
-    }
-
-    #[test]
-    fn double_cursor_move() {
-        let mut list = list![1, 2, 3, 4, 5];
-        let mut dc = list
-            .double_cursor()
-            .expect("A cursor should always be available on a non empty list");
-
-        dc.move_next_b();
-        dc.insert_a_after_b();
-        // This function is idempotent
-        dc.insert_a_after_b();
-        assert_eq!(list.into_iter().collect::<Vec<i32>>(), &[2, 1, 3, 4, 5]);
-    }
-
-    #[test]
-    fn double_cursor_sort() {
-        let mut list = list![3, 1, 8, 21, 5, 9, 12, 5, 2, 6, 6, 6, 13, 2, 17];
-        let len = list.len();
-        let mut dc = list
-            .double_cursor()
-            .expect("A cursor should always be available on a non empty list");
-
-        let mut min = *dc.value_a();
-        for i in 1..len {
-            dc.set_b_to_a();
-            dc.push_a();
-            for _ in i..len {
-                dc.move_next_a();
-                let val = *dc.value_a();
-                if val < min {
-                    min = val;
-                    dc.set_b_to_a();
-                }
-            }
-            dc.pop_a();
-            dc.insert_b_before_a();
-            if dc.a_is_b() {
-                dc.move_next_a();
-            }
-            min = *dc.value_a();
-        }
-        assert_eq!(
-            list.into_iter().collect::<Vec<i32>>(),
-            &[1, 2, 2, 3, 5, 5, 6, 6, 6, 8, 9, 12, 13, 17, 21]
-        );
-    }
-
-    #[test]
-    fn double_cursor_split_empty() {
-        let mut list = list![1, 2, 3, 4, 5];
-        let dc = list.double_cursor().unwrap();
-
-        let list2 = dc.split_at_a();
-        let v2 = list2.into_iter().collect::<Vec<i32>>();
-
-        assert_eq!(v2, &[1, 2, 3, 4, 5]);
-        assert!(list.is_empty());
-    }
-
-    #[test]
-    fn double_cursor_split() {
-        let mut list = list![1, 2, 3, 4, 5];
-        let mut dc = list.double_cursor().unwrap();
-
-        dc.move_next_a();
-        dc.move_next_a();
-        let list2 = dc.split_at_a();
-
-        let v1 = list.into_iter().collect::<Vec<i32>>();
-        let v2 = list2.into_iter().collect::<Vec<i32>>();
-        assert_eq!(v1, &[1, 2]);
-        assert_eq!(v2, &[3, 4, 5]);
     }
 }
