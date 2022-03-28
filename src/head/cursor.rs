@@ -146,7 +146,7 @@ impl<'life, T> DoubleCursor<'life, T> {
             // a valid circular linked list
             self.a = (*self.a).next;
         }
-        self.idx_a += 1;
+        self.idx_a = (self.idx_a + 1) % self.list.len();
     }
 
     /// Moves the 'b' cursor to the next element of the `CircularList`.
@@ -156,7 +156,7 @@ impl<'life, T> DoubleCursor<'life, T> {
             // a valid circular linked list
             self.b = (*self.b).next;
         }
-        self.idx_b += 1;
+        self.idx_b = (self.idx_b + 1) % self.list.len();
     }
 
     /// Moves the 'a' cursor to the previous element of the `CircularList`.
@@ -166,7 +166,8 @@ impl<'life, T> DoubleCursor<'life, T> {
             // a valid circular linked list
             self.a = (*self.a).prev;
         }
-        self.idx_a -= 1;
+        let len = self.list.len();
+        self.idx_a = (len + self.idx_a - 1) % len;
     }
 
     /// Moves the 'b' cursor to the previous element of the `CircularList`.
@@ -176,7 +177,8 @@ impl<'life, T> DoubleCursor<'life, T> {
             // a valid circular linked list
             self.b = (*self.b).prev;
         }
-        self.idx_b -= 1;
+        let len = self.list.len();
+        self.idx_b = (len + self.idx_b - 1) % len;
     }
 
     /// Returns the value of the list element behind the 'a' cursor.
