@@ -24,6 +24,7 @@
 //! is commented with careful justifications to *prove* correctness (at least it is a try).
 
 mod head;
+mod sort;
 
 pub use head::cursor::{Cursor, DoubleCursor};
 
@@ -295,6 +296,14 @@ impl<T> CircularList<T> {
             other.head = ptr::null();
             other.length = 0;
         }
+    }
+
+    /// Sorts the list.
+    pub fn sort(&mut self)
+    where
+        T: core::cmp::PartialOrd,
+    {
+        sort::sort::<T, sort::MergeSort<T>>(self)
     }
 
     /// Moves the head `count` steps to the left.
