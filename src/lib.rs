@@ -278,7 +278,10 @@ impl<T> CircularList<T> {
                 }
                 let mut reached_end_of_s = false;
                 loop {
-                    if *o < *s || reached_end_of_s {
+                    if reached_end_of_s {
+                        ListHead::add_list(o, s_head);
+                        break;
+                    } else if *o < *s {
                         ListHead::move_entry(o, (*s).prev() as *mut _, s);
                         if o == o_end {
                             // We reached the last element of `other`
