@@ -80,8 +80,8 @@ pub struct DoubleCursor<'life, T> {
     list: &'life mut CircularList<T>,
     // Invariant (5):
     // * `a` and `b` are always valid pointers
-    // * The `idx_a` and `idx_b` are always equal to the number of steps between the head and the
-    // position of `a` and `b` respectively
+    // * The `idx_a` and `idx_b` are always equal to the number of (forward) steps between the
+    // head and the position of `a` and `b` respectively
     a: *const ListHead<T>,
     b: *const ListHead<T>,
     idx_a: usize,
@@ -114,16 +114,23 @@ impl<'life, T> DoubleCursor<'life, T> {
     ///
     /// # Note
     /// The `DoubleCursor` is consumed in the operation.
-    fn split_at(self, new_head: *mut ListHead<T>, idx: usize) -> CircularList<T> {
+    ///
+    /// # Safety
+    /// The caller must assert that `new_head` is a valid pointer to a `ListHead` that is a member
+    /// of the same list as `self.list`. The `idx` must correspond to the index of `new_head` in
+    /// `self.list`.
+    unsafe fn split_at(self, new_head: *mut ListHead<T>, idx: usize) -> CircularList<T> {
         let head = self.list.head as *mut _;
         if head == new_head {
             return core::mem::take(self.list);
         }
-        unsafe {
-            // SAFETY: TODO
-            ListHead::<T>::split(head, new_head);
-        }
 
+        // SAFETY: `head` must be a valid pointer since a double cursor cannot be created from
+        // an empty list.
+        ListHead::<T>::split(head, new_head);
+
+        // The `new_head` is wrapped in a new `CircularList` to satisfy the safety condition of
+        // `ListHead::split`.
         let new_list = CircularList {
             head: new_head,
             length: self.list.length - idx,
@@ -268,7 +275,11 @@ impl<'life, T> DoubleCursor<'life, T> {
     pub fn split_at_a(self) -> CircularList<T> {
         let a = self.a as *mut _;
         let idx_a = self.idx_a;
-        self.split_at(a, idx_a)
+        unsafe {
+            // SAFETY: `self.a` is valid and `self.idx_a` is the index of `self.a` in `self.list`
+            // according to (5).
+            self.split_at(a, idx_a)
+        }
     }
 
     /// Cuts the list at the position pointing on the 'b' cursor.
@@ -278,7 +289,11 @@ impl<'life, T> DoubleCursor<'life, T> {
     pub fn split_at_b(self) -> CircularList<T> {
         let b = self.b as *mut _;
         let idx_b = self.idx_b;
-        self.split_at(b, idx_b)
+        unsafe {
+            // SAFETY: `self.b` is valid and `self.idx_b` is the index of `self.b` in `self.list`
+            // according to (5).
+            self.split_at(b, idx_b)
+        }
     }
 
     /// Displaces the element pointed by the 'a' cursor next to the element pointed by the 'b'
@@ -321,23 +336,29 @@ impl<'life, T> DoubleCursor<'life, T> {
         }
     }
 
-    /// TODO doc
+    /// Creates a new list node with value `val` and places it after the element pointed by the
+    /// cursor 'a'.
     pub fn insert_value_after_a(&mut self, val: T) {
         unsafe {
-            // SAFETY: TODO
+            // SAFETY: According to invariant (5), `self.a` is a valid pointer. Moreover, `self.a`
+            // points to a member of `self.list`.
             self.list.insert_after(val, self.a as *mut _)
         }
+        // Preserving invariant (5)
         if self.idx_a < self.idx_b {
             self.idx_b += 1;
         }
     }
 
-    /// TODO doc
+    /// Creates a new list node with value `val` and places it after the element pointed by the
+    /// cursor 'b'.
     pub fn insert_value_after_b(&mut self, val: T) {
         unsafe {
-            // SAFETY: TODO
+            // SAFETY: According to invariant (5), `self.b` is a valid pointer. Moreover, `self.b`
+            // points to a member of `self.list`.
             self.list.insert_after(val, self.b as *mut _)
         }
+        // Preserving invariant (5)
         if self.idx_b < self.idx_a {
             self.idx_a += 1;
         }

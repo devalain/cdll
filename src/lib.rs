@@ -77,7 +77,12 @@ pub struct CircularList<T> {
 
 // private functions
 impl<T> CircularList<T> {
-    /// TODO document
+    /// Creates a new `ListHead` with value `val` and places it after the element pointed by
+    /// `element`.
+    ///
+    /// # Safety
+    /// The caller must assert that `element` is a valid pointer to a `ListHead` that is a
+    /// member of `self`.
     unsafe fn insert_after(&mut self, val: T, element: *mut ListHead<T>) {
         let new = Box::leak(ListHead::<T>::new(val));
 
