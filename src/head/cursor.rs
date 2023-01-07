@@ -365,6 +365,131 @@ impl<'life, T> DoubleCursor<'life, T> {
     }
 }
 
+/// Like a [`Cursor`] but with mutative operations on the list.
+/// This `struct` is constructed by the [`CircularList::cursor_mut`](crate::CircularList::cursor_mut)
+/// function.
+pub struct CursorMut<'life, T> {
+    list: &'life mut CircularList<T>,
+    // Invariant (6): `current` is a valid pointer.
+    current: *mut ListHead<T>,
+}
+
+impl<'life, T> CursorMut<'life, T> {
+    /// Builds a `CursorMut` from a (valid) pointer to a `ListHead<T>`.
+    /// # Panics
+    /// This function panics if the list is empty.
+    pub(crate) fn from_list(list: &'life mut CircularList<T>) -> Self {
+        if list.is_empty() {
+            // Preserving the invariant (6)
+            panic!("Cannot build a `Cursor` from an empty list.");
+        }
+        let current = list.head as *mut _;
+        Self { list, current }
+    }
+
+    /// Returns to its initial position (the head of the list).
+    pub fn reset(&mut self) {
+        self.current = self.list.head as *mut _;
+    }
+
+    /// Moves the cursor to the next element of the `CircularList`.
+    pub fn move_next(&mut self) {
+        unsafe {
+            // SAFETY: Invariants (3) and (6) assert that `self.current` is a valid pointer to
+            // a valid circular linked list
+            self.current = (*self.current).next as *mut _;
+        }
+    }
+
+    /// Moves the cursor to the previous element of the `CircularList`.
+    pub fn move_prev(&mut self) {
+        unsafe {
+            // SAFETY: Invariants (3) and (6) assert that `self.current` is a valid pointer to
+            // a valid circular linked list
+            self.current = (*self.current).prev as *mut _;
+        }
+    }
+
+    /// Returns the (mutable reference to the) value of the list element behind the cursor.
+    pub fn value(&mut self) -> &mut T {
+        // SAFETY: Invariant (6) asserts that `current` is a valid pointer to a `ListHead<T>`.
+        unsafe { &mut (*self.current).value }
+    }
+
+    /// Removes the current element from the list and returns its value. The new current element is
+    /// the next element. Use [`remove_final`](Self::remove_final) function to remove the last
+    /// element.
+    ///
+    /// # Panics
+    /// The function panics if it is called on a cursor to a list with only 1 element because there
+    /// cannot be a `Cursor` or `CursorMut` to an empty list.
+    pub fn remove(&mut self) -> T {
+        if self.list.len() == 1 {
+            panic!("Cannot remove the last element with this function");
+        }
+        if self.list.head == self.current {
+            self.list.remove().unwrap()
+        } else {
+            unsafe {
+                // SAFETY: Invariant (6) asserts that `current` is a valid pointer to a `ListHead<T>`.
+                let (next, val) = ListHead::del_entry(self.current);
+
+                // Preserve invariant (6).
+                self.current = next as *mut _;
+
+                // Preserving invariant (2).
+                self.list.length -= 1;
+
+                val
+            }
+        }
+    }
+
+    /// Removes the current element from the list, returns its value and consumes the cursor. To be
+    /// used when the list contains only 1 element.
+    pub fn remove_final(self) -> T {
+        if self.list.head == self.current {
+            self.list.remove().unwrap()
+        } else {
+            unsafe {
+                // SAFETY: Invariant (6) asserts that `current` is a valid pointer to a `ListHead<T>`.
+                let (_next, val) = ListHead::del_entry(self.current);
+
+                // Preserving invariant (2).
+                self.list.length -= 1;
+
+                val
+            }
+        }
+    }
+
+    /// Inserts an element before the current one.
+    pub fn insert_before(&mut self, val: T) {
+        let new = Box::leak(ListHead::<T>::new(val));
+
+        unsafe {
+            // SAFETY: Invariant (6) asserts that `current` is a valid pointer to a `ListHead<T>`.
+            (*self.current).add(new);
+        }
+
+        // Preserving invariant (2)
+        self.list.length += 1;
+    }
+
+    /// Inserts an element after the current one.
+    pub fn insert_after(&mut self, val: T) {
+        let new = Box::leak(ListHead::<T>::new(val));
+
+        unsafe {
+            // SAFETY: Invariant (6) asserts that `current` is a valid pointer to a `ListHead<T>`.
+            (*self.current).add_after(new);
+        }
+
+        // Preserving invariant (2)
+        self.list.length += 1;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{list, CircularList};
@@ -506,5 +631,18 @@ mod tests {
         dc.insert_value_after_a(42);
         let v1 = list.into_iter().collect::<Vec<i32>>();
         assert_eq!(v1, &[1, 2, 3, 42, 4, 5]);
+    }
+
+    #[test]
+    fn cursor_mut_remove() {
+        let mut list = list![1, 2, 3, 4, 5];
+        let mut c = list.cursor_mut().unwrap();
+
+        c.move_next();
+        assert_eq!(c.remove(), 2);
+        assert_eq!(c.remove(), 3);
+        assert_eq!(c.remove(), 4);
+        assert_eq!(c.remove(), 5);
+        assert_eq!(c.remove_final(), 1);
     }
 }

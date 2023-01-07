@@ -26,7 +26,7 @@
 mod head;
 mod sort;
 
-pub use head::cursor::{Cursor, DoubleCursor};
+pub use head::cursor::{Cursor, CursorMut, DoubleCursor};
 
 use {
     crate::head::{Iter, IterMut, ListHead},
@@ -146,7 +146,7 @@ impl<T> CircularList<T> {
                 // SAFETY: Since `head` is not null, it must be valid as we try to preserve (1).
                 // Furthermore, it must be true that it has pointers to its next and previous
                 // elements because of the invariant (3) (see the `head` module).
-                ListHead::<T>::del(self.head as *mut _)
+                ListHead::<T>::del_entry(self.head as *mut _)
             };
             // If there is a next element, it is the new head, otherwise `self.head` is null.
             // Invariant (1) is preserved since de `ListHead::del` function returns either null
@@ -176,7 +176,7 @@ impl<T> CircularList<T> {
                 // SAFETY: Since `head` is not null, it must be valid because of (1).
                 // Furthermore, it must be true that it has pointers to its next and previous
                 // elements because of invariant (3).
-                ListHead::<T>::del((*self.head).prev() as *mut _)
+                ListHead::<T>::del_entry((*self.head).prev() as *mut _)
             };
 
             // Preserving invariant (2)
@@ -398,6 +398,11 @@ impl<T> CircularList<T> {
     /// Returns some [`Cursor`] pointing to the first element of the list (if any).
     pub fn cursor(&self) -> Option<Cursor<T>> {
         self.is_empty().not().then(|| Cursor::from_list(self))
+    }
+
+    /// Returns some [`CursorMut`] pointing to the first element of the list (if any).
+    pub fn cursor_mut(&mut self) -> Option<CursorMut<T>> {
+        self.is_empty().not().then(|| CursorMut::from_list(self))
     }
 
     /// Returns some [`DoubleCursor`] where the 'a' and the 'b' parts are pointing both to the
