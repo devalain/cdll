@@ -428,7 +428,9 @@ impl<'life, T> CursorMut<'life, T> {
             panic!("Cannot remove the last element with this function");
         }
         if self.list.head == self.current {
-            self.list.remove().unwrap()
+            let val = self.list.remove().unwrap();
+            self.current = self.list.head as *mut _;
+            val
         } else {
             unsafe {
                 // SAFETY: Invariant (6) asserts that `current` is a valid pointer to a `ListHead<T>`.
