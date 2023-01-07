@@ -26,7 +26,7 @@
 mod head;
 mod sort;
 
-pub use head::cursor::{Cursor, DoubleCursor};
+pub use head::cursor::{Cursor, CursorMut, DoubleCursor};
 
 use {
     crate::head::{Iter, IterMut, ListHead},
@@ -134,6 +134,20 @@ impl<T> CircularList<T> {
         self.length += 1;
     }
 
+    /// Returns a shared reference to the value of the list head.
+    /// # Panic
+    /// Panics if the list is empty.
+    pub fn peek(&self) -> &T {
+        if self.is_empty() {
+            panic!("Cannot peek when list is empty");
+        }
+        unsafe {
+            // SAFETY: Invariant (1) guarantee the pointer head to be valid when the list is not
+            // empty.
+            (*self.head).value()
+        }
+    }
+
     /// Removes the first element of the list and returns it if any.
     pub fn remove(&mut self) -> Option<T> {
         // If `self.head` is null (which means `self.length == 0` by (2))
@@ -146,7 +160,7 @@ impl<T> CircularList<T> {
                 // SAFETY: Since `head` is not null, it must be valid as we try to preserve (1).
                 // Furthermore, it must be true that it has pointers to its next and previous
                 // elements because of the invariant (3) (see the `head` module).
-                ListHead::<T>::del(self.head as *mut _)
+                ListHead::<T>::del_entry(self.head as *mut _)
             };
             // If there is a next element, it is the new head, otherwise `self.head` is null.
             // Invariant (1) is preserved since de `ListHead::del` function returns either null
@@ -176,7 +190,7 @@ impl<T> CircularList<T> {
                 // SAFETY: Since `head` is not null, it must be valid because of (1).
                 // Furthermore, it must be true that it has pointers to its next and previous
                 // elements because of invariant (3).
-                ListHead::<T>::del((*self.head).prev() as *mut _)
+                ListHead::<T>::del_entry((*self.head).prev() as *mut _)
             };
 
             // Preserving invariant (2)
@@ -260,7 +274,7 @@ impl<T> CircularList<T> {
     /// It is assumed that the 2 lists are sorted.
     pub fn merge(&mut self, mut other: Self)
     where
-        T: core::cmp::PartialOrd,
+        T: PartialOrd,
     {
         if self.is_empty() {
             self.append(other);
@@ -309,7 +323,7 @@ impl<T> CircularList<T> {
     /// Sorts the list.
     pub fn sort(&mut self)
     where
-        T: core::cmp::PartialOrd,
+        T: PartialOrd,
     {
         sort::sort::<T, sort::MergeSort<T>>(self)
     }
@@ -336,6 +350,38 @@ impl<T> CircularList<T> {
                 // that its next element is also valid.
                 (*self.head).next()
             };
+        }
+    }
+
+    /// Rotate the head of the list `count` times to the left if `count > 0` or `-count` times to
+    /// the right if `count < 0`. Do nothing if `count == 0`.  
+    pub fn rotate(&mut self, count: isize) {
+        // Do nothing if list is empty
+        if self.is_empty() {
+            return;
+        }
+        let count = count.rem_euclid(self.length as isize);
+        for _ in 0..count {
+            self.head = unsafe {
+                // SAFETY: Since the list is non empty and according to invariants (1) and (3),
+                // `head` is a valid pointer to a valid circular linked list. So it must be true
+                // that its next element is also valid.
+                (*self.head).next()
+            };
+        }
+    }
+
+    /// Rotate the head until the given condition is true. Do nothing on empty lists.
+    pub fn rotate_until<F: Fn(&T) -> bool>(&mut self, f: F) {
+        if self.is_empty() {
+            // nothing to do then
+            return;
+        }
+        loop {
+            if f(self.peek()) {
+                break;
+            }
+            self.left_rot(1);
         }
     }
 
@@ -398,6 +444,11 @@ impl<T> CircularList<T> {
     /// Returns some [`Cursor`] pointing to the first element of the list (if any).
     pub fn cursor(&self) -> Option<Cursor<T>> {
         self.is_empty().not().then(|| Cursor::from_list(self))
+    }
+
+    /// Returns some [`CursorMut`] pointing to the first element of the list (if any).
+    pub fn cursor_mut(&mut self) -> Option<CursorMut<T>> {
+        self.is_empty().not().then(|| CursorMut::from_list(self))
     }
 
     /// Returns some [`DoubleCursor`] where the 'a' and the 'b' parts are pointing both to the

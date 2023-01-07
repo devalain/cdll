@@ -50,6 +50,16 @@ impl<T> ListHead<T> {
         self.prev
     }
 
+    /// Gets a shared reference to the value of the list head.
+    pub fn value(&self) -> &T {
+        &self.value
+    }
+
+    /// Gets an exclusive reference to the value of the list head.
+    pub fn value_mut(&mut self) -> &mut T {
+        &mut self.value
+    }
+
     /// Inserts `new` between `prev` and `next`.
     ///
     /// # Sketch
@@ -97,7 +107,7 @@ impl<T> ListHead<T> {
     /// # Safety
     /// `to_del` must be a valid pointer to a `ListHead` with valid pointers to its next
     /// and previous elements.
-    unsafe fn __del_entry(to_del: *mut Self) -> (*const Self, T) {
+    pub unsafe fn del_entry(to_del: *mut Self) -> (*const Self, T) {
         let mut next = (*to_del).next;
         if to_del as *const _ != next {
             // `(*to_del).prev` and `(*to_del).next` should be valid according to invariant (3).
@@ -129,14 +139,6 @@ impl<T> ListHead<T> {
             // another valid pointer according to invariant (3).
             Self::__add(new, self, self.next as *mut _);
         }
-    }
-
-    /// Deletes an element.
-    ///
-    /// # Safety
-    /// The calling party must assert that the `to_del` pointer is valid.
-    pub unsafe fn del(to_del: *mut Self) -> (*const Self, T) {
-        Self::__del_entry(to_del)
     }
 
     /// Connects `new` in place of `old` in the list.
