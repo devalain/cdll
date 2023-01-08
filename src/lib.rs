@@ -134,6 +134,20 @@ impl<T> CircularList<T> {
         self.length += 1;
     }
 
+    /// Returns a shared reference to the value of the list head.
+    /// # Panic
+    /// Panics if the list is empty.
+    pub fn peek(&self) -> &T {
+        if self.is_empty() {
+            panic!("Cannot peek when list is empty");
+        }
+        unsafe {
+            // SAFETY: Invariant (1) guarantee the pointer head to be valid when the list is not
+            // empty.
+            (*self.head).value()
+        }
+    }
+
     /// Removes the first element of the list and returns it if any.
     pub fn remove(&mut self) -> Option<T> {
         // If `self.head` is null (which means `self.length == 0` by (2))
