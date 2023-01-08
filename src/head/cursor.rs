@@ -1,8 +1,4 @@
-use {
-    super::ListHead,
-    crate::CircularList,
-    alloc::{boxed::Box, vec::Vec},
-};
+use {super::ListHead, crate::CircularList, alloc::vec::Vec};
 
 /// A `Cursor` is like an iterator, except that it can freely seek back-and-forth.
 /// This `struct` is constructed by the [`CircularList::cursor`](CircularList::cursor)
@@ -384,7 +380,7 @@ impl<'life, T> DoubleCursor<'life, T> {
 /// function.
 pub struct CursorMut<'life, T> {
     list: &'life mut CircularList<T>,
-    // Invariant (6): `current` is a valid pointer.
+    // Invariant (6): `current` is a valid pointer to an element of `list`.
     current: *mut ListHead<T>,
 }
 
@@ -490,28 +486,20 @@ impl<'life, T> CursorMut<'life, T> {
 
     /// Inserts an element before the current one.
     pub fn insert_before(&mut self, val: T) {
-        let new = Box::leak(ListHead::<T>::new(val));
-
         unsafe {
-            // SAFETY: Invariant (6) asserts that `current` is a valid pointer to a `ListHead<T>`.
-            (*self.current).add(new);
+            // SAFETY: Invariant (6) asserts that `current` is a valid pointer to a `ListHead<T>`
+            // and it is part of the list.
+            self.list.insert_after(val, (*self.current).prev as *mut _);
         }
-
-        // Preserving invariant (2)
-        self.list.length += 1;
     }
 
     /// Inserts an element after the current one.
     pub fn insert_after(&mut self, val: T) {
-        let new = Box::leak(ListHead::<T>::new(val));
-
         unsafe {
-            // SAFETY: Invariant (6) asserts that `current` is a valid pointer to a `ListHead<T>`.
-            (*self.current).add_after(new);
+            // SAFETY: Invariant (6) asserts that `current` is a valid pointer to a `ListHead<T>`
+            // and it is part of the list.
+            self.list.insert_after(val, self.current);
         }
-
-        // Preserving invariant (2)
-        self.list.length += 1;
     }
 }
 
