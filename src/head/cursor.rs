@@ -62,7 +62,7 @@ impl<'life, T> Cursor<'life, T> {
     /// Returns the value of the list element behind the cursor.
     pub fn value(&self) -> &T {
         // SAFETY: Invariant (4) asserts that `current` is a valid pointer to a `ListHead<T>`.
-        unsafe { &(*self.current).value }
+        unsafe { (*self.current).value() }
     }
 }
 
@@ -201,13 +201,13 @@ impl<'life, T> DoubleCursor<'life, T> {
     /// Returns the value of the list element behind the 'a' cursor.
     pub fn value_a(&self) -> &T {
         // SAFETY: Invariant (5) asserts that `self.a` is a valid pointer to a `ListHead<T>`.
-        unsafe { &(*self.a).value }
+        unsafe { (*self.a).value() }
     }
 
     /// Returns the value of the list element behind the 'b' cursor.
     pub fn value_b(&self) -> &T {
         // SAFETY: Invariant (5) asserts that `self.b` is a valid pointer to a `ListHead<T>`.
-        unsafe { &(*self.b).value }
+        unsafe { (*self.b).value() }
     }
 
     /// Swaps the 'a' and 'b' cursors of this `DoubleCursor`.
@@ -428,7 +428,7 @@ impl<'life, T> CursorMut<'life, T> {
     /// Returns the (mutable reference to the) value of the list element behind the cursor.
     pub fn value(&mut self) -> &mut T {
         // SAFETY: Invariant (6) asserts that `current` is a valid pointer to a `ListHead<T>`.
-        unsafe { &mut (*self.current).value }
+        unsafe { (*self.current).value_mut() }
     }
 
     /// Removes the current element from the list and returns its value. The new current element is

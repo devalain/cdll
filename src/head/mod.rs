@@ -50,6 +50,16 @@ impl<T> ListHead<T> {
         self.prev
     }
 
+    /// Gets a shared reference to the value of the list head.
+    pub fn value(&self) -> &T {
+        &self.value
+    }
+
+    /// Gets an exclusive reference to the value of the list head.
+    pub fn value_mut(&mut self) -> &mut T {
+        &mut self.value
+    }
+
     /// Inserts `new` between `prev` and `next`.
     ///
     /// # Sketch
