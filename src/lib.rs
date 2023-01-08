@@ -353,6 +353,38 @@ impl<T> CircularList<T> {
         }
     }
 
+    /// Rotate the head of the list `count` times to the left if `count > 0` or `-count` times to
+    /// the right if `count < 0`. Do nothing if `count == 0`.  
+    pub fn rotate(&mut self, count: isize) {
+        // Do nothing if list is empty
+        if self.is_empty() {
+            return;
+        }
+        let count = count.rem_euclid(self.length as isize);
+        for _ in 0..count {
+            self.head = unsafe {
+                // SAFETY: Since the list is non empty and according to invariants (1) and (3),
+                // `head` is a valid pointer to a valid circular linked list. So it must be true
+                // that its next element is also valid.
+                (*self.head).next()
+            };
+        }
+    }
+
+    /// Rotate the head until the given condition is true. Do nothing on empty lists.
+    pub fn rotate_until<F: Fn(&T) -> bool>(&mut self, f: F) {
+        if self.is_empty() {
+            // nothing to do then
+            return;
+        }
+        loop {
+            if f(self.peek()) {
+                break;
+            }
+            self.left_rot(1);
+        }
+    }
+
     /// Moves the head `count` steps to the right.
     ///
     /// # Example
