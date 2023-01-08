@@ -56,6 +56,7 @@ mod tests {
     use {
         super::{MergeSort, Sorter},
         crate::list,
+        alloc::vec::Vec,
     };
 
     #[test]

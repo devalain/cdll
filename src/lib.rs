@@ -23,6 +23,9 @@
 //! has to preserve some invariants (e.g. pointers must be valid). To achieve this, the source code
 //! is commented with careful justifications to *prove* correctness (at least it is a try).
 
+#![no_std]
+extern crate alloc;
+
 mod head;
 mod sort;
 
@@ -30,6 +33,7 @@ pub use head::cursor::{Cursor, CursorMut, DoubleCursor};
 
 use {
     crate::head::{Iter, IterMut, ListHead},
+    alloc::boxed::Box,
     core::{iter::FromIterator, ops::Not, ptr},
     either::Either,
 };
@@ -525,7 +529,10 @@ impl<T> IntoIterator for CircularList<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use {
+        super::*,
+        alloc::{vec, vec::Vec},
+    };
 
     #[test]
     fn empty() {
