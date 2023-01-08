@@ -666,4 +666,16 @@ mod tests {
         assert_eq!(c.remove(), 5);
         assert_eq!(c.remove_final(), 1);
     }
+
+    #[test]
+    fn cursor_mut_insert() {
+        let mut list = list![1, 2, 3, 4, 5];
+        let mut c = list.cursor_mut().unwrap();
+
+        c.move_next();
+        assert_eq!(c.remove(), 2);
+        c.insert_before(2);
+        let v1 = list.into_iter().collect::<Vec<i32>>();
+        assert_eq!(v1, &[1, 2, 3, 4, 5]);
+    }
 }
