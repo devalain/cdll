@@ -31,6 +31,11 @@ impl<'life, T> Cursor<'life, T> {
         }
     }
 
+    /// Returns a reference of the underlying list.
+    pub fn list(&self) -> &CircularList<T> {
+        self.list
+    }
+
     /// Returns to its initial position (the head of the list).
     pub fn reset(&mut self) {
         self.current = self.list.head;
@@ -108,6 +113,11 @@ impl<'life, T> DoubleCursor<'life, T> {
             idx_b: 0,
             stack: Vec::new(),
         }
+    }
+
+    /// Returns a reference of the underlying list.
+    pub fn list(&self) -> &CircularList<T> {
+        self.list
     }
 
     /// Cuts the list at `new_head` and create a new list from there.
@@ -385,6 +395,11 @@ impl<'life, T> CursorMut<'life, T> {
         }
         let current = list.head as *mut _;
         Self { list, current }
+    }
+
+    /// Returns a reference of the underlying list.
+    pub fn list(&self) -> &CircularList<T> {
+        self.list
     }
 
     /// Returns to its initial position (the head of the list).
