@@ -14,7 +14,7 @@ pub struct Cursor<'life, T> {
     current: *const ListHead<T>,
 }
 
-impl<'life, T> core::cmp::PartialEq for Cursor<'life, T> {
+impl<'life, T> PartialEq for Cursor<'life, T> {
     fn eq(&self, other: &Self) -> bool {
         self.list.head == other.list.head && self.current == other.current
     }
