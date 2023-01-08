@@ -274,7 +274,7 @@ impl<T> CircularList<T> {
     /// It is assumed that the 2 lists are sorted.
     pub fn merge(&mut self, mut other: Self)
     where
-        T: core::cmp::PartialOrd,
+        T: PartialOrd,
     {
         if self.is_empty() {
             self.append(other);
@@ -323,7 +323,7 @@ impl<T> CircularList<T> {
     /// Sorts the list.
     pub fn sort(&mut self)
     where
-        T: core::cmp::PartialOrd,
+        T: PartialOrd,
     {
         sort::sort::<T, sort::MergeSort<T>>(self)
     }
