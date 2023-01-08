@@ -86,7 +86,7 @@ impl<T> CircularList<T> {
     /// # Safety
     /// The caller must assert that `element` is a valid pointer to a `ListHead` that is a
     /// member of `self`.
-    unsafe fn insert_after(&mut self, val: T, element: *mut ListHead<T>) {
+    pub(crate) unsafe fn insert_after(&mut self, val: T, element: *mut ListHead<T>) {
         let new = Box::leak(ListHead::<T>::new(val));
 
         (*element).add_after(new);
