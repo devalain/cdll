@@ -1,7 +1,11 @@
-use {super::ListHead, crate::CircularList};
+use {
+    super::ListHead,
+    crate::CircularList,
+    alloc::{boxed::Box, vec::Vec},
+};
 
 /// A `Cursor` is like an iterator, except that it can freely seek back-and-forth.
-/// This `struct` is constructed by the [`CircularList::cursor`](crate::CircularList::cursor)
+/// This `struct` is constructed by the [`CircularList::cursor`](CircularList::cursor)
 /// function.
 #[derive(Clone, Copy)]
 pub struct Cursor<'life, T> {
@@ -10,7 +14,7 @@ pub struct Cursor<'life, T> {
     current: *const ListHead<T>,
 }
 
-impl<'life, T> core::cmp::PartialEq for Cursor<'life, T> {
+impl<'life, T> PartialEq for Cursor<'life, T> {
     fn eq(&self, other: &Self) -> bool {
         self.list.head == other.list.head && self.current == other.current
     }
@@ -376,7 +380,7 @@ impl<'life, T> DoubleCursor<'life, T> {
 }
 
 /// Like a [`Cursor`] but with mutative operations on the list.
-/// This `struct` is constructed by the [`CircularList::cursor_mut`](crate::CircularList::cursor_mut)
+/// This `struct` is constructed by the [`CircularList::cursor_mut`](CircularList::cursor_mut)
 /// function.
 pub struct CursorMut<'life, T> {
     list: &'life mut CircularList<T>,
@@ -513,7 +517,10 @@ impl<'life, T> CursorMut<'life, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{list, CircularList};
+    use {
+        crate::{list, CircularList},
+        alloc::vec::Vec,
+    };
 
     #[test]
     fn cursor_empty_list() {

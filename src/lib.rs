@@ -23,6 +23,9 @@
 //! has to preserve some invariants (e.g. pointers must be valid). To achieve this, the source code
 //! is commented with careful justifications to *prove* correctness (at least it is a try).
 
+#![no_std]
+extern crate alloc;
+
 mod head;
 mod sort;
 
@@ -30,8 +33,8 @@ pub use head::cursor::{Cursor, CursorMut, DoubleCursor};
 
 use {
     crate::head::{Iter, IterMut, ListHead},
+    alloc::boxed::Box,
     core::{iter::FromIterator, ops::Not, ptr},
-    either::Either,
 };
 
 /// Create a list with provided elements.
@@ -413,11 +416,11 @@ impl<T> CircularList<T> {
     /// Returns an infinite iterator over the list except if it is empty, in which case the
     /// returned iterator is also empty.
     pub fn iter_forever(&self) -> impl Iterator<Item = &T> {
-        if self.is_empty() {
-            Either::Left(core::iter::empty())
-        } else {
-            Either::Right(Iter::new(self))
-        }
+        self.is_empty()
+            .not()
+            .then(|| Iter::new(self))
+            .into_iter()
+            .flatten()
     }
 
     /// Returns an iterator over the list.
@@ -428,11 +431,11 @@ impl<T> CircularList<T> {
     /// Returns an infinite iterator that allows modifying each value. The returned iterator is
     /// empty if the list is empty.
     pub fn iter_mut_forever(&mut self) -> impl Iterator<Item = &mut T> {
-        if self.is_empty() {
-            Either::Left(core::iter::empty())
-        } else {
-            Either::Right(IterMut::new(self))
-        }
+        self.is_empty()
+            .not()
+            .then(|| IterMut::new(self))
+            .into_iter()
+            .flatten()
     }
 
     /// Returns an iterator that allows modifying each value.
@@ -525,7 +528,10 @@ impl<T> IntoIterator for CircularList<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use {
+        super::*,
+        alloc::{vec, vec::Vec},
+    };
 
     #[test]
     fn empty() {
