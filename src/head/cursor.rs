@@ -444,7 +444,10 @@ impl<'life, T> CursorMut<'life, T> {
         }
         if self.list.head == self.current {
             let val = self.list.remove().unwrap();
+
+            // Preserve invariant (6).
             self.current = self.list.head as *mut _;
+
             val
         } else {
             unsafe {
@@ -466,6 +469,7 @@ impl<'life, T> CursorMut<'life, T> {
     /// used when the list contains only 1 element.
     pub fn remove_final(self) -> T {
         if self.list.head == self.current {
+            // Invariant (6) does not need to be preserved here as the cursor is consumed.
             self.list.remove().unwrap()
         } else {
             unsafe {
