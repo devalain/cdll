@@ -3,7 +3,7 @@ use {crate::CircularList, core::marker::PhantomData};
 /// A trait for sorting elements in [`CircularList`s](`crate::CircularList`).
 pub trait Sorter {
     /// The type of the elements to sort.
-    type Item: core::cmp::PartialOrd;
+    type Item: PartialOrd;
 
     /// Sorts a list of elements that can be ordered.
     fn sort(list: &mut CircularList<Self::Item>);
@@ -12,7 +12,7 @@ pub trait Sorter {
 /// Sorts a list of elements that can be ordered.
 pub fn sort<T, S>(list: &mut CircularList<T>)
 where
-    T: core::cmp::PartialOrd,
+    T: PartialOrd,
     S: Sorter<Item = T>,
 {
     S::sort(list)
@@ -23,7 +23,7 @@ pub struct MergeSort<T> {
     _marker: PhantomData<T>,
 }
 
-impl<T: core::cmp::PartialOrd> Sorter for MergeSort<T> {
+impl<T: PartialOrd> Sorter for MergeSort<T> {
     type Item = T;
 
     fn sort(list: &mut CircularList<Self::Item>) {
