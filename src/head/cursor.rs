@@ -270,11 +270,6 @@ impl<'life, T> DoubleCursor<'life, T> {
 
     /// Swaps the list nodes pointed by the 'a' and 'b' cursors. It is a `O(1)` operation.
     pub fn swap(&mut self) {
-        // Makes swap backwards work?
-        if self.idx_a > self.idx_b {
-            self.swap_cursors();
-        }
-
         unsafe {
             // SAFETY: Invariants (3) and (5) assert that `self.a` and `self.b` are part of
             // a valid circular linked list.
