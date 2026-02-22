@@ -693,4 +693,44 @@ mod tests {
             assert_eq!(a.into_iter().collect::<Vec<i32>>(), c);
         }
     }
+
+    #[test]
+    fn reverse() {
+        let mut a = list![0, 1, 2, 3, 4];
+        reverse_segment(&mut a, 0, 3);
+        assert_eq!(a.clone().into_iter().collect::<Vec<i32>>(), &[2, 1, 0, 3, 4]);
+        reverse_segment(&mut a, 3, 4);
+        assert_eq!(a.clone().into_iter().collect::<Vec<i32>>(), &[4, 3, 0, 1, 2]);
+        reverse_segment(&mut a, 1, 1);
+        assert_eq!(a.clone().into_iter().collect::<Vec<i32>>(), &[4, 3, 0, 1, 2]); // No change
+        reverse_segment(&mut a, 1, 5);
+        assert_eq!(a.clone().into_iter().collect::<Vec<i32>>(), &[3, 4, 2, 1, 0]);
+    }
+
+    fn reverse_segment<T>(list: &mut CircularList<T>, start: usize, count: usize) {
+        if count <= 1 {
+            return;
+        }
+
+        let mut cur = list.double_cursor().unwrap();
+        // move to start
+        for _ in 0..start {
+            cur.move_next_a();
+            cur.move_next_b();
+        }
+
+        // move to end of segment (start + count - 1)
+        for _ in 0..(count - 1) {
+            cur.move_next_b();
+        }
+
+        // number of swaps is count / 2
+        for _ in 0..(count / 2) {
+            // swap the payloads, no extra temp binding:
+            cur.swap();
+            cur.move_next_a();
+            cur.move_prev_b();
+        }
+    }
+
 }
