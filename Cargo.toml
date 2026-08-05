@@ -2,8 +2,8 @@
 name = "cdll"
 description = "A circular doubly linked list"
 authors = ["me@alain.dev"]
-version = "0.4.1"
-edition = "2021"
+version = "0.5.0"
+edition = "2024"
 license = "Apache-2.0"
 repository = "https://github.com/devalain/cll"
 

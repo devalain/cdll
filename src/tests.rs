@@ -1,28 +1,50 @@
 use super::*;
 
 #[test]
-fn list_works() {
-    let n: CircularList<i32> = CircularList::new();
-    let arr: Vec<i32> = n.iter().copied().collect();
-    assert!(n.is_empty());
-    assert_eq!(arr.as_slice(), &[]);
+fn list_constructor_empty() {
+    let list: CircularList<i32> = CircularList::new();
+    assert!(list.is_empty());
+    assert_eq!(list, list![]);
+}
 
-    let mut n: CircularList<i32> = CircularList::new();
-    n.push_back(1);
-    let arr: Vec<_> = n.iter().copied().collect();
-    assert!(n.len() == 1);
-    assert_eq!(arr.as_slice(), &[1]);
-    let val = n.pop_front();
-    assert_eq!(val, Some(1));
-    assert_eq!(n.pop_front(), None);
+#[test]
+fn list_constructor_1() {
+    let mut list: CircularList<i32> = CircularList::new();
+    list.push_back(1);
+    assert!(!list.is_empty());
+    assert_eq!(list.len(), 1);
+    assert_eq!(list, list![1]);
+    assert_eq!(list.pop_front(), Some(1));
+    assert_eq!(list.len(), 0);
+    assert!(list.is_empty());
+    assert_eq!(list.pop_front(), None);
+}
 
-    let mut n = list![1, 2, 42, 666];
-    let arr: Vec<_> = n.iter().copied().collect();
-    assert!(n.len() == 4);
+#[test]
+fn list_constructor_4() {
+    let mut list = list![1, 2, 42, 666];
+    let arr: Vec<_> = list.iter().copied().collect();
+    assert!(list.len() == 4);
     assert_eq!(arr.as_slice(), &[1, 2, 42, 666]);
-    assert_eq!(n.pop_front(), Some(1));
-    assert_eq!(n.pop_front(), Some(2));
-    assert_eq!(n.pop_front(), Some(42));
-    assert_eq!(n.pop_front(), Some(666));
-    assert_eq!(n.pop_front(), None);
+    assert_eq!(list.pop_front(), Some(1));
+    assert_eq!(list.pop_front(), Some(2));
+    assert_eq!(list.pop_front(), Some(42));
+    assert_eq!(list.pop_front(), Some(666));
+    assert_eq!(list.pop_front(), None);
+}
+
+#[test]
+fn list_iter() {
+    let list = list![@each 0..100];
+    for (i, el) in list.iter().copied().enumerate() {
+        assert_eq!(i, el as usize);
+    }
+}
+
+#[test]
+fn list_iter_rev() {
+    let list = list![@each 0..100];
+    for (i, el) in list.iter().rev().copied().enumerate() {
+        assert_eq!(i, (100 - el as usize) % 100);
+    }
 }

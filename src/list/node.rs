@@ -1,4 +1,4 @@
-use std::ptr::NonNull;
+use core::ptr::NonNull;
 
 pub(super) struct Node<T> {
     pub next: NonNull<Node<T>>,
@@ -38,11 +38,7 @@ impl<T> Node<T> {
     pub(super) unsafe fn next_distinct(this: NonNull<Node<T>>) -> Option<NonNull<Node<T>>> {
         unsafe {
             let next = (*this.as_ptr()).next;
-            if next != this {
-                Some(next)
-            } else {
-                None
-            }
+            if next != this { Some(next) } else { None }
         }
     }
 
