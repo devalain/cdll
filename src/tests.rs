@@ -48,3 +48,14 @@ fn list_iter_rev() {
         assert_eq!(i, (100 - el as usize) % 100);
     }
 }
+
+#[test]
+fn list_iter_mut() {
+    let mut list = list![@each 0..100];
+    for el in list.iter_mut() {
+        *el *= 2;
+    }
+    for (i, el) in list.iter().copied().enumerate() {
+        assert_eq!(2 * i, el as usize);
+    }
+}
