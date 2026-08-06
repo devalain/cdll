@@ -68,3 +68,14 @@ fn list_into_iter() {
     }
     assert_eq!(sum, 5050);
 }
+
+#[test]
+fn list_split_at() {
+    let mut list = list![@each 1..=100];
+    let other = list.split_half().unwrap();
+
+    assert_eq!(list, (1..=50).collect::<CircularList<_>>());
+    assert_eq!(list.len(), 50);
+    assert_eq!(other, (51..=100).collect::<CircularList<_>>());
+    assert_eq!(other.len(), 50);
+}

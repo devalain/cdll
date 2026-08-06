@@ -1,5 +1,7 @@
 use core::ptr::NonNull;
 
+use crate::CircularList;
+
 pub(super) struct Node<T> {
     pub next: NonNull<Node<T>>,
     pub prev: NonNull<Node<T>>,
@@ -85,6 +87,35 @@ impl<T> Node<T> {
 
                 this.value
             }
+        }
+    }
+
+    pub(super) unsafe fn half(list: &CircularList<T>) -> Option<NonNull<Self>> {
+        let head = list.head?;
+        unsafe {
+            let mut slow = head;
+            let mut fast = (*head.as_ptr()).next;
+            while fast != head && (*fast.as_ptr()).next != head {
+                fast = (*(*fast.as_ptr()).next.as_ptr()).next;
+                if fast != head {
+                    slow = (*slow.as_ptr()).next;
+                }
+            }
+            Some((*slow.as_ptr()).next)
+        }
+    }
+
+    pub(super) unsafe fn split(head: NonNull<Node<T>>, mid: NonNull<Node<T>>) {
+        unsafe {
+            // Assume mid is not head
+            let old_last = (*head.as_ptr()).prev;
+            let new_last = (*mid.as_ptr()).prev;
+
+            (*head.as_ptr()).prev = new_last;
+            (*mid.as_ptr()).prev = old_last;
+
+            (*old_last.as_ptr()).next = mid;
+            (*new_last.as_ptr()).next = head;
         }
     }
 }

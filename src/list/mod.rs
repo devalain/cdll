@@ -6,13 +6,10 @@ use {
     node::Node,
 };
 
-pub use {
-    iter::{IntoIter, Iter, IterMut, RevIter},
-};
+pub use iter::{IntoIter, Iter, IterMut, RevIter};
 
 pub struct CircularList<T> {
     head: Option<NonNull<Node<T>>>,
-    len: usize,
     _marker: PhantomData<Box<Node<T>>>,
 }
 
@@ -38,19 +35,16 @@ impl<T: core::fmt::Debug> core::fmt::Debug for CircularList<T> {
 
 impl<T: PartialEq> PartialEq for CircularList<T> {
     fn eq(&self, other: &Self) -> bool {
-        if self.len != other.len {
-            return false;
-        }
         let mut self_iter = self.iter();
         let mut other_iter = other.iter();
-        while let Some(self_elem) = self_iter.next()
-            && let Some(other_elem) = other_iter.next()
-        {
-            if self_elem != other_elem {
-                return false;
+
+        loop {
+            match (self_iter.next(), other_iter.next()) {
+                (Some(self_elem), Some(other_elem)) if self_elem == other_elem => {}
+                (None, None) => break true,
+                _ => break false,
             }
         }
-        true
     }
 }
 impl<T: Eq> Eq for CircularList<T> {}
@@ -69,16 +63,15 @@ impl<T> CircularList<T> {
     pub fn new() -> Self {
         Self {
             head: None,
-            len: 0,
             _marker: PhantomData,
         }
     }
 
     pub fn len(&self) -> usize {
-        self.len
+        self.iter().count()
     }
     pub fn is_empty(&self) -> bool {
-        self.len == 0
+        self.head.is_none()
     }
 
     pub fn push_back(&mut self, val: T) {
@@ -86,10 +79,8 @@ impl<T> CircularList<T> {
             unsafe {
                 Node::insert_prev(head, val);
             }
-            self.len += 1;
         } else {
             self.head = Some(Node::new(val));
-            self.len = 1;
         }
     }
 
@@ -98,7 +89,6 @@ impl<T> CircularList<T> {
         let next = unsafe { Node::next_distinct(head) };
         let val = unsafe { Node::remove(head) };
         self.head = next;
-        self.len -= 1;
         Some(val)
     }
 
@@ -110,6 +100,21 @@ impl<T> CircularList<T> {
     }
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         IterMut::from_list(self)
+    }
+
+    pub fn split_half(&mut self) -> Option<Self> {
+        let head = self.head?;
+        let mid = unsafe { Node::half(self) }?;
+        if head == mid {
+            return None;
+        }
+        unsafe {
+            Node::split(head, mid);
+        }
+        Some(Self {
+            head: Some(mid),
+            ..Default::default()
+        })
     }
 }
 
