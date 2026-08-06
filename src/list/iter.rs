@@ -72,3 +72,18 @@ impl<'c, T> Iterator for IterMut<'c, T> {
         Some(unsafe { &mut (*current.as_ptr()).value })
     }
 }
+
+pub struct IntoIter<T> {
+    list: CircularList<T>,
+}
+impl<T> IntoIter<T> {
+    pub(super) fn from_list(list: CircularList<T>) -> Self {
+        Self { list }
+    }
+}
+impl<T> Iterator for IntoIter<T> {
+    type Item = T;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.list.pop_front()
+    }
+}

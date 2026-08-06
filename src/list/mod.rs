@@ -6,7 +6,9 @@ use {
     node::Node,
 };
 
-pub use iter::{Iter, IterMut, RevIter};
+pub use {
+    iter::{IntoIter, Iter, IterMut, RevIter},
+};
 
 pub struct CircularList<T> {
     head: Option<NonNull<Node<T>>>,
@@ -108,6 +110,14 @@ impl<T> CircularList<T> {
     }
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         IterMut::from_list(self)
+    }
+}
+
+impl<T> IntoIterator for CircularList<T> {
+    type IntoIter = IntoIter<T>;
+    type Item = T;
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter::from_list(self)
     }
 }
 

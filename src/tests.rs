@@ -59,3 +59,12 @@ fn list_iter_mut() {
         assert_eq!(2 * i, el as usize);
     }
 }
+
+#[test]
+fn list_into_iter() {
+    let mut sum = 0;
+    for x in list![@each 1..=100] {
+        sum += x;
+    }
+    assert_eq!(sum, 5050);
+}
