@@ -44,8 +44,8 @@ fn list_iter() {
 #[test]
 fn list_iter_rev() {
     let list = list![@each 0..100];
-    for (i, el) in list.iter().rev().copied().enumerate() {
-        assert_eq!(i, (100 - el as usize) % 100);
+    for (i, el) in list.rev_iter().copied().enumerate() {
+        assert_eq!(99 - i, el as usize);
     }
 }
 
