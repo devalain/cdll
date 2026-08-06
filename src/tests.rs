@@ -70,7 +70,7 @@ fn list_into_iter() {
 }
 
 #[test]
-fn list_split_at() {
+fn list_split_half() {
     let mut list = list![@each 1..=100];
     let other = list.split_half().unwrap();
 
