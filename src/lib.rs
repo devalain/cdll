@@ -1,4 +1,15 @@
 #![no_std]
+//! Circular doubly linked list.
+//!
+//! # Basic usage
+//! ```
+//! # use cdll::{list, CircularList};
+//! let mut list = list![1, 2, 3];
+//!
+//! list.push_back(4);
+//! assert_eq!(list, list![1, 2, 3, 4]);
+//! assert_eq!(list.pop_front(), Some(1));
+//! ```
 
 extern crate alloc;
 

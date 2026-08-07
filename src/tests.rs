@@ -159,3 +159,12 @@ fn list_dedup() {
     list.dedup();
     assert_eq!(list, list![1, 2, 3, 2]);
 }
+
+#[test]
+fn list_push_front_and_pop_back() {
+    let mut list = list![1, 2, 3, 4, 5];
+
+    list.push_front(0);
+    assert_eq!(list, list![0, 1, 2, 3, 4, 5]);
+    assert_eq!(list.pop_back(), Some(5));
+}

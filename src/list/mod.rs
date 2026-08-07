@@ -97,6 +97,10 @@ impl<T> CircularList<T> {
             self.head = Some(Node::new(val));
         }
     }
+    pub fn push_front(&mut self, val: T) {
+        self.push_back(val);
+        self.rot(-1);
+    }
 
     pub fn pop_front(&mut self) -> Option<T> {
         let head = self.head?;
@@ -104,6 +108,10 @@ impl<T> CircularList<T> {
         let val = unsafe { Node::remove(head) };
         self.head = next;
         Some(val)
+    }
+    pub fn pop_back(&mut self) -> Option<T> {
+        self.rot(-1);
+        self.pop_front()
     }
 
     pub fn iter(&self) -> Iter<'_, T> {
