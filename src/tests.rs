@@ -42,6 +42,13 @@ fn list_clear() {
 }
 
 #[test]
+fn list_first_last() {
+    let list = list!['A', 'B', 'C', 'D'];
+    assert_eq!(list.first(), Some(&'A'));
+    assert_eq!(list.last(), Some(&'D'));
+}
+
+#[test]
 fn list_iter() {
     let list = list![@each 0..100];
     for (i, el) in list.iter().copied().enumerate() {

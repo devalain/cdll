@@ -77,6 +77,18 @@ impl<T> CircularList<T> {
         self.head.is_none()
     }
 
+    pub fn first(&self) -> Option<&T> {
+        let head = self.head?;
+        Some(unsafe { &(*head.as_ptr()).value })
+    }
+    pub fn last(&self) -> Option<&T> {
+        let head = self.head?;
+        Some(unsafe {
+            let tail = (*head.as_ptr()).prev;
+            &(*tail.as_ptr()).value
+        })
+    }
+
     pub fn push_back(&mut self, val: T) {
         if let Some(head) = self.head {
             unsafe {
