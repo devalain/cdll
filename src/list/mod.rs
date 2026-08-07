@@ -157,7 +157,7 @@ impl<T> CircularList<T> {
         }
     }
 
-    pub fn extend_from_list(&mut self, mut other: Self) {
+    pub fn append(&mut self, other: &mut Self) {
         match (self.head, other.head) {
             (None, None) => {}
             (Some(head), None) | (None, Some(head)) => {

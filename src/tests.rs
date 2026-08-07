@@ -146,11 +146,12 @@ fn list_rot() {
 }
 
 #[test]
-fn list_extend() {
+fn list_append() {
     let mut a = list![1, 2, 3];
-    let b = list![4, 5, 6];
-    a.extend_from_list(b);
+    let mut b = list![4, 5, 6];
+    a.append(&mut b);
     assert_eq!(a, list![1, 2, 3, 4, 5, 6]);
+    assert!(b.is_empty());
 }
 
 #[test]
