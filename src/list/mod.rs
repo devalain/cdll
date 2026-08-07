@@ -1,3 +1,4 @@
+use alloc::boxed::Box;
 pub(crate) mod node;
 
 use {
@@ -26,7 +27,7 @@ impl<T: Clone> Clone for CircularList<T> {
     }
 }
 impl<T: core::fmt::Debug> core::fmt::Debug for CircularList<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_list().entries(self.iter()).finish()
     }
 }

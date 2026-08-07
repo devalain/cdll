@@ -1,6 +1,4 @@
-use core::ptr::NonNull;
-
-use crate::CircularList;
+use {crate::CircularList, alloc::boxed::Box, core::ptr::NonNull};
 
 pub(crate) struct Node<T> {
     pub next: NonNull<Node<T>>,

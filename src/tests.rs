@@ -23,7 +23,7 @@ fn list_constructor_1() {
 #[test]
 fn list_constructor_4() {
     let mut list = list![1, 2, 42, 666];
-    let arr: Vec<_> = list.iter().copied().collect();
+    let arr: alloc::vec::Vec<_> = list.iter().copied().collect();
     assert!(list.len() == 4);
     assert_eq!(arr.as_slice(), &[1, 2, 42, 666]);
     assert_eq!(list.pop_front(), Some(1));
