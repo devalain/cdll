@@ -79,3 +79,53 @@ fn list_split_half() {
     assert_eq!(other, (51..=100).collect::<CircularList<_>>());
     assert_eq!(other.len(), 50);
 }
+
+#[test]
+fn list_rot() {
+    let rot13: CircularList<(char, char)> = list![
+        ('A', 'N'),
+        ('B', 'O'),
+        ('C', 'P'),
+        ('D', 'Q'),
+        ('E', 'R'),
+        ('F', 'S'),
+        ('G', 'T'),
+        ('H', 'U'),
+        ('I', 'V'),
+        ('J', 'W'),
+        ('K', 'X'),
+        ('L', 'Y'),
+        ('M', 'Z'),
+        ('N', 'A'),
+        ('O', 'B'),
+        ('P', 'C'),
+        ('Q', 'D'),
+        ('R', 'E'),
+        ('S', 'F'),
+        ('T', 'G'),
+        ('U', 'H'),
+        ('V', 'I'),
+        ('W', 'J'),
+        ('X', 'K'),
+        ('Y', 'L'),
+        ('Z', 'M')
+    ];
+
+    let mut list = list![@each 'A'..='Z'];
+    list.rot(13);
+    let map = list![@each 'A'..='Z']
+        .into_iter()
+        .zip(list.into_iter())
+        .collect::<CircularList<_>>();
+
+    assert_eq!(map, rot13);
+
+    let mut list = list![@each 'A'..='Z'];
+    list.rot(-13);
+    let map = list![@each 'A'..='Z']
+        .into_iter()
+        .zip(list.into_iter())
+        .collect::<CircularList<_>>();
+
+    assert_eq!(map, rot13);
+}

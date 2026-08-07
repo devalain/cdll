@@ -116,6 +116,24 @@ impl<T> CircularList<T> {
             ..Default::default()
         })
     }
+
+    pub fn rot(&mut self, n: isize) {
+        if let Some(head) = self.head.as_mut() {
+            if n < 0 {
+                for _ in 0..-n {
+                    unsafe {
+                        *head = (*head.as_ptr()).prev;
+                    }
+                }
+            } else {
+                for _ in 0..n {
+                    unsafe {
+                        *head = (*head.as_ptr()).next;
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl<T> IntoIterator for CircularList<T> {
