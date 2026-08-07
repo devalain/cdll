@@ -2,7 +2,7 @@ use core::ptr::NonNull;
 
 use crate::CircularList;
 
-pub(super) struct Node<T> {
+pub(crate) struct Node<T> {
     pub next: NonNull<Node<T>>,
     pub prev: NonNull<Node<T>>,
     pub value: T,
@@ -20,7 +20,7 @@ impl<T> Node<T> {
     ///      │   │
     ///      └───┘
     /// ```
-    pub(super) fn new(value: T) -> NonNull<Self> {
+    pub(crate) fn new(value: T) -> NonNull<Self> {
         let boxed = Box::new(Node {
             next: NonNull::dangling(),
             prev: NonNull::dangling(),
@@ -37,14 +37,14 @@ impl<T> Node<T> {
         ptr
     }
 
-    pub(super) unsafe fn next_distinct(this: NonNull<Node<T>>) -> Option<NonNull<Node<T>>> {
+    pub(crate) unsafe fn next_distinct(this: NonNull<Node<T>>) -> Option<NonNull<Node<T>>> {
         unsafe {
             let next = (*this.as_ptr()).next;
             if next != this { Some(next) } else { None }
         }
     }
 
-    pub(super) unsafe fn insert_prev(this: NonNull<Node<T>>, val: T) {
+    pub(crate) unsafe fn insert_prev(this: NonNull<Node<T>>, val: T) {
         let new = Self::new(val);
 
         unsafe {
@@ -57,7 +57,7 @@ impl<T> Node<T> {
         }
     }
 
-    pub(super) unsafe fn disconnect(this: NonNull<Node<T>>) {
+    pub(crate) unsafe fn disconnect(this: NonNull<Node<T>>) {
         unsafe {
             let prev = (*this.as_ptr()).prev.as_ptr();
             let next = (*this.as_ptr()).next.as_ptr();
@@ -79,14 +79,14 @@ impl<T> Node<T> {
         }
     }
 
-    pub(super) unsafe fn connect(this: NonNull<Node<T>>, next: NonNull<Node<T>>) {
+    pub(crate) unsafe fn connect(this: NonNull<Node<T>>, next: NonNull<Node<T>>) {
         unsafe {
             (*this.as_ptr()).next = next;
             (*next.as_ptr()).prev = this;
         }
     }
 
-    pub(super) unsafe fn remove(this: NonNull<Node<T>>) -> T {
+    pub(crate) unsafe fn remove(this: NonNull<Node<T>>) -> T {
         unsafe {
             Self::disconnect(this);
             let this = Box::from_raw(this.as_ptr());
@@ -94,7 +94,7 @@ impl<T> Node<T> {
         }
     }
 
-    pub(super) unsafe fn half(list: &CircularList<T>) -> Option<NonNull<Self>> {
+    pub(crate) unsafe fn half(list: &CircularList<T>) -> Option<NonNull<Self>> {
         let head = list.head?;
         unsafe {
             let mut slow = head;
@@ -109,7 +109,7 @@ impl<T> Node<T> {
         }
     }
 
-    pub(super) unsafe fn split(head: NonNull<Node<T>>, mid: NonNull<Node<T>>) {
+    pub(crate) unsafe fn split(head: NonNull<Node<T>>, mid: NonNull<Node<T>>) {
         unsafe {
             // Assume mid is not head
             let old_last = (*head.as_ptr()).prev;

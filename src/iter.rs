@@ -1,5 +1,5 @@
 use {
-    crate::{CircularList, list::Node},
+    crate::{CircularList, list::node::Node},
     core::ptr::NonNull,
 };
 

@@ -1,15 +1,13 @@
-mod iter;
-mod node;
+pub(crate) mod node;
 
 use {
+    crate::iter::{IntoIter, Iter, IterMut, RevIter},
     core::{marker::PhantomData, ptr::NonNull},
     node::Node,
 };
 
-pub use iter::{IntoIter, Iter, IterMut, RevIter};
-
 pub struct CircularList<T> {
-    head: Option<NonNull<Node<T>>>,
+    pub(crate) head: Option<NonNull<Node<T>>>,
     _marker: PhantomData<Box<Node<T>>>,
 }
 
