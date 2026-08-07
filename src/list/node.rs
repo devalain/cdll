@@ -79,6 +79,13 @@ impl<T> Node<T> {
         }
     }
 
+    pub(super) unsafe fn connect(this: NonNull<Node<T>>, next: NonNull<Node<T>>) {
+        unsafe {
+            (*this.as_ptr()).next = next;
+            (*next.as_ptr()).prev = this;
+        }
+    }
+
     pub(super) unsafe fn remove(this: NonNull<Node<T>>) -> T {
         unsafe {
             Self::disconnect(this);

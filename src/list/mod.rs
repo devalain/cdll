@@ -67,6 +67,9 @@ impl<T> CircularList<T> {
         }
     }
 
+    pub fn clear(&mut self) {
+        while self.pop_front().is_some() {}
+    }
     pub fn len(&self) -> usize {
         self.iter().count()
     }
@@ -132,6 +135,30 @@ impl<T> CircularList<T> {
                     }
                 }
             }
+        }
+    }
+
+    pub fn extend_from_list(&mut self, mut other: Self) {
+        match (self.head, other.head) {
+            (None, None) => {}
+            (Some(head), None) | (None, Some(head)) => {
+                self.head = Some(head);
+            }
+            (Some(head_a), Some(head_b)) => unsafe {
+                let tail_a = (*head_a.as_ptr()).prev;
+                let tail_b = (*head_b.as_ptr()).prev;
+                Node::connect(tail_a, head_b);
+                Node::connect(tail_b, head_a);
+                other.head = None;
+            },
+        }
+    }
+}
+
+impl<T> Extend<T> for CircularList<T> {
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        for val in iter {
+            self.push_back(val);
         }
     }
 }

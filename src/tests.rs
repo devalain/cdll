@@ -34,6 +34,14 @@ fn list_constructor_4() {
 }
 
 #[test]
+fn list_clear() {
+    let mut list = list![@each 1..=100];
+    assert!(!list.is_empty());
+    list.clear();
+    assert!(list.is_empty());
+}
+
+#[test]
 fn list_iter() {
     let list = list![@each 0..100];
     for (i, el) in list.iter().copied().enumerate() {
@@ -128,4 +136,12 @@ fn list_rot() {
         .collect::<CircularList<_>>();
 
     assert_eq!(map, rot13);
+}
+
+#[test]
+fn list_extend() {
+    let mut a = list![1, 2, 3];
+    let b = list![4, 5, 6];
+    a.extend_from_list(b);
+    assert_eq!(a, list![1, 2, 3, 4, 5, 6]);
 }
