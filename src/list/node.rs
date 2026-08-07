@@ -57,36 +57,33 @@ impl<T> Node<T> {
         }
     }
 
-    pub(super) unsafe fn remove(this: NonNull<Node<T>>) -> T {
+    pub(super) unsafe fn disconnect(this: NonNull<Node<T>>) {
         unsafe {
             let prev = (*this.as_ptr()).prev.as_ptr();
             let next = (*this.as_ptr()).next.as_ptr();
 
             if prev != next {
                 // 3 or more elements
-                let this = Box::from_raw(this.as_ptr());
-                let prev = this.prev;
-                let next = this.next;
+                let prev = (*this.as_ptr()).prev;
+                let next = (*this.as_ptr()).next;
 
                 (*prev.as_ptr()).next = next;
                 (*next.as_ptr()).prev = prev;
-
-                this.value
-            } else if this.as_ptr() == prev {
-                // 1 element
-                let this = Box::from_raw(this.as_ptr());
-
-                this.value
-            } else {
+            } else if this.as_ptr() != prev {
                 // 2 elements
-                let this = Box::from_raw(this.as_ptr());
-                let next = this.next;
+                let next = (*this.as_ptr()).next;
 
                 (*next.as_ptr()).next = next;
                 (*next.as_ptr()).prev = next;
+            };
+        }
+    }
 
-                this.value
-            }
+    pub(super) unsafe fn remove(this: NonNull<Node<T>>) -> T {
+        unsafe {
+            Self::disconnect(this);
+            let this = Box::from_raw(this.as_ptr());
+            this.value
         }
     }
 
