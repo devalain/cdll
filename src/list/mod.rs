@@ -155,6 +155,33 @@ impl<T> CircularList<T> {
     }
 }
 
+impl<T: PartialEq> CircularList<T> {
+    pub fn dedup(&mut self) {
+        let Some(head) = self.head else {
+            return;
+        };
+        unsafe {
+            let mut prev_value = &(*head.as_ptr()).value;
+            let mut current = (*head.as_ptr()).next;
+            let mut value = &(*current.as_ptr()).value;
+
+            loop {
+                if current == head {
+                    break;
+                }
+                let next = (*current.as_ptr()).next;
+                if value == prev_value {
+                    let _ = Node::remove(current);
+                } else {
+                    prev_value = value;
+                }
+                current = next;
+                value = &(*current.as_ptr()).value;
+            }
+        }
+    }
+}
+
 impl<T> Extend<T> for CircularList<T> {
     fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
         for val in iter {

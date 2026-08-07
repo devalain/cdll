@@ -145,3 +145,10 @@ fn list_extend() {
     a.extend_from_list(b);
     assert_eq!(a, list![1, 2, 3, 4, 5, 6]);
 }
+
+#[test]
+fn list_dedup() {
+    let mut list = list![1, 2, 2, 3, 2];
+    list.dedup();
+    assert_eq!(list, list![1, 2, 3, 2]);
+}
