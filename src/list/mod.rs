@@ -186,6 +186,9 @@ impl<T> CircularList<T> {
 }
 
 impl<T: PartialEq> CircularList<T> {
+    pub fn contains(&self, elem: &T) -> bool {
+        self.iter().any(|x| x == elem)
+    }
     pub fn dedup(&mut self) {
         let Some(head) = self.head else {
             return;

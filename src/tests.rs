@@ -163,6 +163,12 @@ fn list_append() {
 }
 
 #[test]
+fn list_contains() {
+    let list = list![1, 2, 3, 4];
+    assert!(list.contains(&3));
+}
+
+#[test]
 fn list_dedup() {
     let mut list = list![1, 2, 2, 3, 2];
     list.dedup();
