@@ -43,9 +43,17 @@ fn list_clear() {
 
 #[test]
 fn list_first_last() {
-    let list = list!['A', 'B', 'C', 'D'];
+    let mut list = list!['A', 'B', 'C', 'D'];
     assert_eq!(list.first(), Some(&'A'));
     assert_eq!(list.last(), Some(&'D'));
+
+    let first = list.first_mut().unwrap();
+    *first = 'X';
+    assert_eq!(list.first(), Some(&'X'));
+
+    let last = list.last_mut().unwrap();
+    *last = 'Y';
+    assert_eq!(list.last(), Some(&'Y'));
 }
 
 #[test]

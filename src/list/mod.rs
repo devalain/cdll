@@ -80,11 +80,22 @@ impl<T> CircularList<T> {
         let head = self.head?;
         Some(unsafe { &(*head.as_ptr()).value })
     }
+    pub fn first_mut(&mut self) -> Option<&mut T> {
+        let head = self.head?;
+        Some(unsafe { &mut (*head.as_ptr()).value })
+    }
     pub fn last(&self) -> Option<&T> {
         let head = self.head?;
         Some(unsafe {
             let tail = (*head.as_ptr()).prev;
             &(*tail.as_ptr()).value
+        })
+    }
+    pub fn last_mut(&mut self) -> Option<&mut T> {
+        let head = self.head?;
+        Some(unsafe {
+            let tail = (*head.as_ptr()).prev;
+            &mut (*tail.as_ptr()).value
         })
     }
 
