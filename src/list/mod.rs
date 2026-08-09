@@ -2,11 +2,16 @@ use alloc::boxed::Box;
 pub(crate) mod node;
 
 use {
-    crate::iter::{IntoIter, Iter, IterMut, RevIter},
+    crate::iter::{IntoIter, Iter, IterMut, Rev},
     core::{marker::PhantomData, ptr::NonNull},
     node::Node,
 };
 
+/// A circular doubly linked list with owned nodes. It is similar to the
+/// standard library [`LinkedList`]. The difference is that it is circular
+/// (i.e. the last element is linked to the first).
+///
+/// [`LinkedList`]: https://doc.rust-lang.org/std/collections/struct.LinkedList.html
 pub struct CircularList<T> {
     pub(crate) head: Option<NonNull<Node<T>>>,
     _marker: PhantomData<Box<Node<T>>>,
@@ -128,8 +133,8 @@ impl<T> CircularList<T> {
     pub fn iter(&self) -> Iter<'_, T> {
         Iter::from_list(self)
     }
-    pub fn rev_iter(&self) -> RevIter<'_, T> {
-        RevIter::from_list(self)
+    pub fn rev_iter(&self) -> Rev<'_, T> {
+        Rev::from_list(self)
     }
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         IterMut::from_list(self)

@@ -23,6 +23,6 @@ mod macros;
 mod tests;
 
 pub use {
-    iter::{IntoIter, Iter, IterMut, RevIter},
+    iter::{IntoIter, Iter, IterMut, Rev},
     list::CircularList,
 };
