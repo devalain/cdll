@@ -104,7 +104,7 @@ fn list_split_half() {
 }
 
 #[test]
-fn list_rot() {
+fn list_rotate() {
     let rot13: CircularList<(char, char)> = list![
         ('A', 'N'),
         ('B', 'O'),
@@ -135,7 +135,7 @@ fn list_rot() {
     ];
 
     let mut list = list![@each 'A'..='Z'];
-    list.rot(13);
+    list.rotate(13);
     let map = list![@each 'A'..='Z']
         .into_iter()
         .zip(list.into_iter())
@@ -144,7 +144,7 @@ fn list_rot() {
     assert_eq!(map, rot13);
 
     let mut list = list![@each 'A'..='Z'];
-    list.rot(-13);
+    list.rotate(-13);
     let map = list![@each 'A'..='Z']
         .into_iter()
         .zip(list.into_iter())
@@ -154,13 +154,13 @@ fn list_rot() {
 }
 
 #[test]
-fn list_rot_2() {
+fn list_rotate_2() {
     let mut list = list![1, 2, 3];
 
-    list.rot(13);
+    list.rotate(13);
     assert_eq!(list, list![2, 3, 1]);
 
-    list.rot(-13);
+    list.rotate(-13);
     assert_eq!(list, list![1, 2, 3]);
 }
 

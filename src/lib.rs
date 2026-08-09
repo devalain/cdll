@@ -1,4 +1,3 @@
-#![no_std]
 //! Circular doubly linked list.
 //!
 //! # Basic usage
@@ -11,6 +10,7 @@
 //! assert_eq!(list.pop_front(), Some(1));
 //! ```
 
+#![no_std]
 extern crate alloc;
 
 mod iter;

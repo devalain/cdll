@@ -8,7 +8,7 @@ use {
 };
 
 /// A circular doubly linked list with owned nodes. It is similar to the
-/// standard library [`LinkedList`]. The difference is that it is circular
+/// standard library [`LinkedList`] (the API is almost the same) exept it is circular
 /// (i.e. the last element is linked to the first).
 ///
 /// [`LinkedList`]: https://doc.rust-lang.org/std/collections/struct.LinkedList.html
@@ -65,11 +65,11 @@ impl<T> FromIterator<T> for CircularList<T> {
 
 impl<T> CircularList<T> {
     /// Create an empty `CircularList`.
-    /// 
+    ///
     /// ### Examples
     /// ```
     /// use cdll::CircularList;
-    /// 
+    ///
     /// let list: CircularList<i32> = CircularList::new();
     /// ```
     pub fn new() -> Self {
@@ -79,24 +79,137 @@ impl<T> CircularList<T> {
         }
     }
 
+    /// Removes all elements from the `CircularList`.
+    ///
+    /// This operation should compute in *O*(*n*) time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut cl = CircularList::new();
+    ///
+    /// cl.push_front(2);
+    /// cl.push_front(1);
+    /// assert_eq!(cl.len(), 2);
+    /// assert_eq!(cl.front(), Some(&1));
+    ///
+    /// cl.clear();
+    /// assert_eq!(cl.len(), 0);
+    /// assert_eq!(cl.front(), None);
+    /// ```
     pub fn clear(&mut self) {
         while self.pop_front().is_some() {}
     }
+
+    /// Returns the length of the `CircularList`.
+    ///
+    /// This operation should compute in *O*(*n*) time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut cl = CircularList::new();
+    ///
+    /// cl.push_front(2);
+    /// assert_eq!(cl.len(), 1);
+    ///
+    /// cl.push_front(1);
+    /// assert_eq!(cl.len(), 2);
+    ///
+    /// cl.push_back(3);
+    /// assert_eq!(cl.len(), 3);
+    /// ```
     pub fn len(&self) -> usize {
         self.iter().count()
     }
+
+    /// Returns `true` if the `CircularList` is empty.
+    ///
+    /// This operation should compute in *O*(1) time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut cl = CircularList::new();
+    /// assert!(cl.is_empty());
+    ///
+    /// cl.push_front("foo");
+    /// assert!(!cl.is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.head.is_none()
     }
 
+    /// Provides a reference to the front element, or `None` if the list is
+    /// empty.
+    ///
+    /// This operation should compute in *O*(1) time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut cl = CircularList::new();
+    /// assert_eq!(cl.front(), None);
+    ///
+    /// cl.push_front(1);
+    /// assert_eq!(cl.front(), Some(&1));
+    /// ```
     pub fn front(&self) -> Option<&T> {
         let head = self.head?;
         Some(unsafe { &(*head.as_ptr()).value })
     }
+
+    /// Provides a mutable reference to the front element, or `None` if the list
+    /// is empty.
+    ///
+    /// This operation should compute in *O*(1) time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut cl = CircularList::new();
+    /// assert_eq!(cl.front(), None);
+    ///
+    /// cl.push_front(1);
+    /// assert_eq!(cl.front(), Some(&1));
+    ///
+    /// match cl.front_mut() {
+    ///     None => {},
+    ///     Some(x) => *x = 5,
+    /// }
+    /// assert_eq!(cl.front(), Some(&5));
+    /// ```
     pub fn front_mut(&mut self) -> Option<&mut T> {
         let head = self.head?;
         Some(unsafe { &mut (*head.as_ptr()).value })
     }
+
+    /// Provides a reference to the back element, or `None` if the list is
+    /// empty.
+    ///
+    /// This operation should compute in *O*(1) time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut cl = CircularList::new();
+    /// assert_eq!(cl.back(), None);
+    ///
+    /// cl.push_back(1);
+    /// assert_eq!(cl.back(), Some(&1));
+    /// ```
     pub fn back(&self) -> Option<&T> {
         let head = self.head?;
         Some(unsafe {
@@ -104,6 +217,29 @@ impl<T> CircularList<T> {
             &(*tail.as_ptr()).value
         })
     }
+
+    /// Provides a mutable reference to the back element, or `None` if the list
+    /// is empty.
+    ///
+    /// This operation should compute in *O*(1) time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut cl = CircularList::new();
+    /// assert_eq!(cl.back(), None);
+    ///
+    /// cl.push_back(1);
+    /// assert_eq!(cl.back(), Some(&1));
+    ///
+    /// match cl.back_mut() {
+    ///     None => {},
+    ///     Some(x) => *x = 5,
+    /// }
+    /// assert_eq!(cl.back(), Some(&5));
+    /// ```
     pub fn back_mut(&mut self) -> Option<&mut T> {
         let head = self.head?;
         Some(unsafe {
@@ -112,6 +248,20 @@ impl<T> CircularList<T> {
         })
     }
 
+    /// Adds an element to the back of the list.
+    ///
+    /// This operation should compute in *O*(1) time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut c = CircularList::new();
+    /// c.push_back(1);
+    /// c.push_back(3);
+    /// assert_eq!(3, *c.back().unwrap());
+    /// ```
     pub fn push_back(&mut self, val: T) {
         if let Some(head) = self.head {
             unsafe {
@@ -121,11 +271,48 @@ impl<T> CircularList<T> {
             self.head = Some(Node::new(val));
         }
     }
+
+    /// Adds an element to the front of the list.
+    ///
+    /// This operation should compute in *O*(1) time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut cl = CircularList::new();
+    ///
+    /// cl.push_front(2);
+    /// assert_eq!(cl.front().unwrap(), &2);
+    ///
+    /// cl.push_front(1);
+    /// assert_eq!(cl.front().unwrap(), &1);
+    /// ```
     pub fn push_front(&mut self, val: T) {
         self.push_back(val);
-        self.rot(-1);
+        self.rotate(-1);
     }
 
+    /// Removes the first element and returns it, or `None` if the list is
+    /// empty.
+    ///
+    /// This operation should compute in *O*(1) time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut c = CircularList::new();
+    /// assert_eq!(c.pop_front(), None);
+    ///
+    /// c.push_front(1);
+    /// c.push_front(3);
+    /// assert_eq!(c.pop_front(), Some(3));
+    /// assert_eq!(c.pop_front(), Some(1));
+    /// assert_eq!(c.pop_front(), None);
+    /// ```
     pub fn pop_front(&mut self) -> Option<T> {
         let head = self.head?;
         let next = unsafe { Node::next_distinct(head) };
@@ -133,19 +320,97 @@ impl<T> CircularList<T> {
         self.head = next;
         Some(val)
     }
+
+    /// Adds an element to the back of the list.
+    ///
+    /// This operation should compute in *O*(1) time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut c = CircularList::new();
+    /// c.push_back(1);
+    /// c.push_back(3);
+    /// assert_eq!(3, *c.back().unwrap());
+    /// ```
     pub fn pop_back(&mut self) -> Option<T> {
-        self.rot(-1);
+        self.rotate(-1);
         self.pop_front()
     }
 
+    /// Provides a forward iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut list: CircularList<u32> = CircularList::new();
+    ///
+    /// list.push_back(0);
+    /// list.push_back(1);
+    /// list.push_back(2);
+    ///
+    /// let mut iter = list.iter();
+    /// assert_eq!(iter.next(), Some(&0));
+    /// assert_eq!(iter.next(), Some(&1));
+    /// assert_eq!(iter.next(), Some(&2));
+    /// assert_eq!(iter.next(), None);
+    /// ```
     pub fn iter(&self) -> Iter<'_, T> {
         Iter::from_list(self)
     }
-    pub fn rev_iter(&self) -> Rev<'_, T> {
-        Rev::from_list(self)
-    }
+
+    /// Provides a forward iterator with mutable references.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut list: CircularList<u32> = CircularList::new();
+    ///
+    /// list.push_back(0);
+    /// list.push_back(1);
+    /// list.push_back(2);
+    ///
+    /// for element in list.iter_mut() {
+    ///     *element += 10;
+    /// }
+    ///
+    /// let mut iter = list.iter();
+    /// assert_eq!(iter.next(), Some(&10));
+    /// assert_eq!(iter.next(), Some(&11));
+    /// assert_eq!(iter.next(), Some(&12));
+    /// assert_eq!(iter.next(), None);
+    /// ```
     pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         IterMut::from_list(self)
+    }
+
+    /// Provides a backward iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut list: CircularList<u32> = CircularList::new();
+    ///
+    /// list.push_back(0);
+    /// list.push_back(1);
+    /// list.push_back(2);
+    ///
+    /// let mut iter = list.rev_iter();
+    /// assert_eq!(iter.next(), Some(&2));
+    /// assert_eq!(iter.next(), Some(&1));
+    /// assert_eq!(iter.next(), Some(&0));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    pub fn rev_iter(&self) -> Rev<'_, T> {
+        Rev::from_list(self)
     }
 
     pub fn split_half(&mut self) -> Option<Self> {
@@ -163,7 +428,7 @@ impl<T> CircularList<T> {
         })
     }
 
-    pub fn rot(&mut self, n: isize) {
+    pub fn rotate(&mut self, n: isize) {
         let len = self.len() as isize;
         if let Some(head) = self.head.as_mut() {
             let n = n.rem_euclid(len);
@@ -183,6 +448,35 @@ impl<T> CircularList<T> {
         }
     }
 
+    /// Moves all elements from `other` to the end of the list.
+    ///
+    /// This reuses all the nodes from `other` and moves them into `self`. After
+    /// this operation, `other` becomes empty.
+    ///
+    /// This operation should compute in *O*(1) time and *O*(1) memory.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::CircularList;
+    ///
+    /// let mut list1 = CircularList::new();
+    /// list1.push_back('a');
+    ///
+    /// let mut list2 = CircularList::new();
+    /// list2.push_back('b');
+    /// list2.push_back('c');
+    ///
+    /// list1.append(&mut list2);
+    ///
+    /// let mut iter = list1.iter();
+    /// assert_eq!(iter.next(), Some(&'a'));
+    /// assert_eq!(iter.next(), Some(&'b'));
+    /// assert_eq!(iter.next(), Some(&'c'));
+    /// assert!(iter.next().is_none());
+    ///
+    /// assert!(list2.is_empty());
+    /// ```
     pub fn append(&mut self, other: &mut Self) {
         match (self.head, other.head) {
             (None, None) => {}
