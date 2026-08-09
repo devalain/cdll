@@ -42,18 +42,18 @@ fn list_clear() {
 }
 
 #[test]
-fn list_first_last() {
+fn list_front_back() {
     let mut list = list!['A', 'B', 'C', 'D'];
-    assert_eq!(list.first(), Some(&'A'));
-    assert_eq!(list.last(), Some(&'D'));
+    assert_eq!(list.front(), Some(&'A'));
+    assert_eq!(list.back(), Some(&'D'));
 
-    let first = list.first_mut().unwrap();
+    let first = list.front_mut().unwrap();
     *first = 'X';
-    assert_eq!(list.first(), Some(&'X'));
+    assert_eq!(list.front(), Some(&'X'));
 
-    let last = list.last_mut().unwrap();
+    let last = list.back_mut().unwrap();
     *last = 'Y';
-    assert_eq!(list.last(), Some(&'Y'));
+    assert_eq!(list.back(), Some(&'Y'));
 }
 
 #[test]

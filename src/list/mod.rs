@@ -64,6 +64,14 @@ impl<T> FromIterator<T> for CircularList<T> {
 }
 
 impl<T> CircularList<T> {
+    /// Create an empty `CircularList`.
+    /// 
+    /// ### Examples
+    /// ```
+    /// use cdll::CircularList;
+    /// 
+    /// let list: CircularList<i32> = CircularList::new();
+    /// ```
     pub fn new() -> Self {
         Self {
             head: None,
@@ -81,22 +89,22 @@ impl<T> CircularList<T> {
         self.head.is_none()
     }
 
-    pub fn first(&self) -> Option<&T> {
+    pub fn front(&self) -> Option<&T> {
         let head = self.head?;
         Some(unsafe { &(*head.as_ptr()).value })
     }
-    pub fn first_mut(&mut self) -> Option<&mut T> {
+    pub fn front_mut(&mut self) -> Option<&mut T> {
         let head = self.head?;
         Some(unsafe { &mut (*head.as_ptr()).value })
     }
-    pub fn last(&self) -> Option<&T> {
+    pub fn back(&self) -> Option<&T> {
         let head = self.head?;
         Some(unsafe {
             let tail = (*head.as_ptr()).prev;
             &(*tail.as_ptr()).value
         })
     }
-    pub fn last_mut(&mut self) -> Option<&mut T> {
+    pub fn back_mut(&mut self) -> Option<&mut T> {
         let head = self.head?;
         Some(unsafe {
             let tail = (*head.as_ptr()).prev;
