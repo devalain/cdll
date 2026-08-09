@@ -23,7 +23,7 @@
 //! has to preserve some invariants (e.g. pointers must be valid). To achieve this, the source code
 //! is commented with careful justifications to *prove* correctness (at least it is a try).
 
-#![no_std]
+// #![no_std]
 extern crate alloc;
 
 mod head;
@@ -413,6 +413,50 @@ impl<T> CircularList<T> {
         }
     }
 
+    /// Reverse a part of the list from `start` for `count` elements.
+    ///
+    /// # Example
+    /// ```
+    /// # use cdll::CircularList;
+    /// let mut saying: CircularList<_> = "reverting is part of coding".chars().collect();
+    /// saying.reverse_segment(13, 4);
+    /// assert_eq!("reverting is trap of coding", saying.into_iter().collect::<String>())
+    /// ```
+    pub fn reverse_segment(&mut self, start: usize, count: usize) -> Result<(), &str> {
+        if count <= 1 {
+            return Ok(());
+        }
+
+        let mut cur = match self.double_cursor() {
+            Some(c) => c,
+            None => {
+                return Err("Can't get a double cursor, check your list");
+            },
+        };
+        // move to start
+        for _ in 0..start {
+            cur.move_next_a();
+            cur.move_next_b();
+        }
+
+        // move to end of segment (start + count - 1)
+        for _ in 0..(count - 1) {
+            cur.move_next_b();
+        }
+
+        // number of swaps is count / 2
+        for _ in 0..(count / 2) {
+            // swap the payloads, no extra temp binding:
+            cur.swap();
+            // after a swap, a and b are pointing on the same node 
+            // so to continue, we have to swap back to where we were.
+            cur.swap_cursors();
+            cur.move_next_a();
+            cur.move_prev_b();
+        }
+        Ok(())
+    }
+
     /// Returns an infinite iterator over the list except if it is empty, in which case the
     /// returned iterator is also empty.
     pub fn iter_forever(&self) -> impl Iterator<Item = &T> {
@@ -530,7 +574,7 @@ impl<T> IntoIterator for CircularList<T> {
 mod tests {
     use {
         super::*,
-        alloc::{vec, vec::Vec},
+        alloc::vec::{self, Vec}, std::fmt::Debug,
     };
 
     #[test]
@@ -693,4 +737,27 @@ mod tests {
             assert_eq!(a.into_iter().collect::<Vec<i32>>(), c);
         }
     }
+
+
+    #[test]
+    fn manual_reverse() {
+        let mut a = list![0, 1, 2, 3, 4, 5, 6];
+        let _ = a.reverse_segment(1, 5);
+        assert_eq!(a.clone().into_iter().collect::<Vec<i32>>(), &[0, 5, 4, 3, 2, 1, 6]);
+        
+    }
+
+    #[test]
+    fn reverse() {
+        let mut a = list![0, 1, 2, 3, 4];
+        let _ = a.reverse_segment(0, 3);
+        assert_eq!(a.clone().into_iter().collect::<Vec<i32>>(), &[2, 1, 0, 3, 4]);
+        let _ = a.reverse_segment(3, 4);
+        assert_eq!(a.clone().into_iter().collect::<Vec<i32>>(), &[4, 3, 0, 1, 2]);
+        let _ = a.reverse_segment(1, 1);
+        assert_eq!(a.clone().into_iter().collect::<Vec<i32>>(), &[4, 3, 0, 1, 2]); // No change
+        let _ = a.reverse_segment(1, 5);
+        assert_eq!(a.clone().into_iter().collect::<Vec<i32>>(), &[3, 4, 2, 1, 0]);
+    }
+
 }
