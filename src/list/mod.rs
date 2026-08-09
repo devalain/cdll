@@ -413,11 +413,27 @@ impl<T> CircularList<T> {
         Rev::from_list(self)
     }
 
+    /// Extracts one half of the list and returns it as a new list.
+    ///
+    /// If the list is empty, this returns `None`.
+    ///
+    /// The extracted list is the greater half if the length is odd.
+    ///
+    /// This operation is *O*(*n*).
+    ///
+    /// # Examples
+    /// ```
+    /// use cdll::list;
+    ///
+    /// let mut list = list![1, 2, 3];
+    /// let half = list.split_half();
+    /// assert_eq!(half, Some(list![2, 3]));
+    /// ```
     pub fn split_half(&mut self) -> Option<Self> {
         let head = self.head?;
         let mid = unsafe { Node::half(self) }?;
         if head == mid {
-            return None;
+            return Some(core::mem::take(self));
         }
         unsafe {
             Node::split(head, mid);
@@ -428,10 +444,39 @@ impl<T> CircularList<T> {
         })
     }
 
-    pub fn rotate(&mut self, n: isize) {
+    /// If mid is positive, rotates the list in-place such that the first `mid`
+    /// elements of the list move to the end while the last `self.len() - mid`
+    /// elements move to the front.
+    ///
+    /// If mid is negative, rotates the list in-place such that the first
+    /// `self.len() + mid` elements of the list move to the end while the last
+    /// `-mid` elements move to the front.
+    ///
+    /// Only the Euclid remainder of `mid` modulo `self.len()` is used.
+    ///
+    /// # Complexity
+    ///
+    /// Takes linear (in `mid % self.len()`) time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::list;
+    /// let mut a = list!['a', 'b', 'c', 'd', 'e', 'f'];
+    /// a.rotate(2);
+    /// assert_eq!(a, list!['c', 'd', 'e', 'f', 'a', 'b']);
+    /// ```
+    ///
+    /// ```
+    /// use cdll::list;
+    /// let mut a = list!['a', 'b', 'c', 'd', 'e', 'f'];
+    /// a.rotate(-2);
+    /// assert_eq!(a, list!['e', 'f', 'a', 'b', 'c', 'd']);
+    /// ```
+    pub fn rotate(&mut self, mid: isize) {
         let len = self.len() as isize;
         if let Some(head) = self.head.as_mut() {
-            let n = n.rem_euclid(len);
+            let n = mid.rem_euclid(len);
             if n < 0 {
                 for _ in 0..-n {
                     unsafe {
@@ -555,6 +600,31 @@ impl<T: PartialEq> CircularList<T> {
 }
 
 impl<T: PartialOrd> CircularList<T> {
+    /// Moves all elements from `other` to the list keeping it ordered if it is the case.
+    ///
+    /// This reuses all the nodes from `other` and moves them into `self`. After
+    /// this operation, `other` becomes empty.
+    ///
+    /// This operation should compute in *O*(*n*) time and *O*(1) memory.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::{CircularList, list};
+    ///
+    /// let mut list1 = CircularList::new();
+    /// list1.push_back('a');
+    /// list1.push_back('c');
+    ///
+    /// let mut list2 = CircularList::new();
+    /// list2.push_back('b');
+    /// list2.push_back('d');
+    ///
+    /// list1.merge(&mut list2);
+    ///
+    /// assert_eq!(list1, list!['a', 'b', 'c', 'd']);
+    /// assert!(list2.is_empty());
+    /// ```
     pub fn merge(&mut self, other: &mut Self) {
         match (self.head, other.head) {
             (None, None) => {}

@@ -156,13 +156,13 @@ fn list_rotate() {
 
 #[test]
 fn list_rotate_2() {
-    let mut list = list![1, 2, 3];
+    let mut list = list![1, 2, 3, 4, 5];
 
     list.rotate(13);
-    assert_eq!(list, list![2, 3, 1]);
+    assert_eq!(list, list![4, 5, 1, 2, 3]);
 
     list.rotate(-13);
-    assert_eq!(list, list![1, 2, 3]);
+    assert_eq!(list, list![1, 2, 3, 4, 5]);
 }
 
 #[test]
