@@ -1,3 +1,4 @@
+extern crate std;
 use super::*;
 
 #[test]
@@ -193,4 +194,26 @@ fn list_push_front_and_pop_back() {
     list.push_front(0);
     assert_eq!(list, list![0, 1, 2, 3, 4, 5]);
     assert_eq!(list.pop_back(), Some(5));
+}
+
+#[test]
+fn split_half_and_merge() {
+    let list = list![3, 1, 8, 21, 5, 9, 12, 5, 2, 6, 6, 6, 13, 2, 17];
+    let sorted = merge_sort(list);
+    assert_eq!(
+        sorted,
+        list![1, 2, 2, 3, 5, 5, 6, 6, 6, 8, 9, 12, 13, 17, 21]
+    )
+}
+fn merge_sort(mut list: CircularList<i32>) -> CircularList<i32> {
+    if list.is_empty() || list.len() == 1 {
+        return list;
+    }
+
+    let second = list.split_half().expect("List not empty");
+    let mut list = merge_sort(list);
+    let mut second = merge_sort(second);
+
+    list.merge(&mut second);
+    list
 }

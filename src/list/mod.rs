@@ -66,7 +66,7 @@ impl<T> FromIterator<T> for CircularList<T> {
 impl<T> CircularList<T> {
     /// Create an empty `CircularList`.
     ///
-    /// ### Examples
+    /// # Examples
     /// ```
     /// use cdll::CircularList;
     ///
@@ -495,9 +495,39 @@ impl<T> CircularList<T> {
 }
 
 impl<T: PartialEq> CircularList<T> {
+    /// Returns `true` if the list contains an element with the given value.
+    ///
+    /// This operation is *O*(*n*).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::list;
+    ///
+    /// let l = list![10, 40, 30];
+    /// assert!(l.contains(&30));
+    /// assert!(!l.contains(&50));
+    /// ```
     pub fn contains(&self, elem: &T) -> bool {
         self.iter().any(|x| x == elem)
     }
+
+    /// Removes consecutive repeated elements in the list according to the
+    /// [`PartialEq`] trait implementation.
+    ///
+    /// If the list is sorted, this removes all duplicates.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cdll::list;
+    ///
+    /// let mut list = list![1, 2, 2, 3, 2];
+    ///
+    /// list.dedup();
+    ///
+    /// assert_eq!(list, list![1, 2, 3, 2]);
+    /// ```
     pub fn dedup(&mut self) {
         let Some(head) = self.head else {
             return;
@@ -521,6 +551,21 @@ impl<T: PartialEq> CircularList<T> {
                 value = &(*current.as_ptr()).value;
             }
         }
+    }
+}
+
+impl<T: PartialOrd> CircularList<T> {
+    pub fn merge(&mut self, other: &mut Self) {
+        match (self.head, other.head) {
+            (None, None) => {}
+            (Some(head), None) | (None, Some(head)) => {
+                self.head = Some(head);
+            }
+            (Some(head_a), Some(head_b)) => unsafe {
+                self.head = Some(Node::merge(head_a, head_b));
+            },
+        }
+        other.head = None;
     }
 }
 

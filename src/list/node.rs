@@ -120,4 +120,68 @@ impl<T> Node<T> {
             (*new_last.as_ptr()).next = head;
         }
     }
+
+    pub(crate) unsafe fn merge(
+        head_a: NonNull<Node<T>>,
+        head_b: NonNull<Node<T>>,
+    ) -> NonNull<Node<T>>
+    where
+        T: PartialOrd,
+    {
+        unsafe {
+            let lt = |a: NonNull<Node<T>>, b: NonNull<Node<T>>| {
+                (*a.as_ptr()).value < (*b.as_ptr()).value
+            };
+
+            let tail_a = (*head_a.as_ptr()).prev;
+            let tail_b = (*head_b.as_ptr()).prev;
+
+            let head = if lt(head_a, head_b) { head_a } else { head_b };
+            let tail = if lt(tail_a, tail_b) { tail_b } else { tail_a };
+
+            let mut next_a = if head == head_a {
+                (*head_a.as_ptr()).next
+            } else {
+                head_a
+            };
+            let mut next_b = if head == head_b {
+                (*head_b.as_ptr()).next
+            } else {
+                head_b
+            };
+            let mut current = head;
+
+            loop {
+                if next_a == tail_a && next_b == tail_b {
+                    if next_a == tail {
+                        Self::connect(current, next_b);
+                        Self::connect(next_b, tail);
+                    } else {
+                        Self::connect(current, next_a);
+                        Self::connect(next_a, tail);
+                    }
+                    break;
+                }
+                if lt(next_a, next_b) {
+                    Self::connect(current, next_a);
+                    if next_a == tail_a {
+                        Self::connect(next_a, next_b);
+                        break;
+                    }
+                    next_a = (*next_a.as_ptr()).next;
+                } else {
+                    Self::connect(current, next_b);
+                    if next_b == tail_b {
+                        Self::connect(next_b, next_a);
+                        break;
+                    }
+                    next_b = (*next_b.as_ptr()).next;
+                }
+                current = (*current.as_ptr()).next;
+            }
+
+            Node::connect(tail, head);
+            head
+        }
+    }
 }
