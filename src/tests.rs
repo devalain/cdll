@@ -154,6 +154,17 @@ fn list_rot() {
 }
 
 #[test]
+fn list_rot_2() {
+    let mut list = list![1, 2, 3];
+
+    list.rot(13);
+    assert_eq!(list, list![2, 3, 1]);
+
+    list.rot(-13);
+    assert_eq!(list, list![1, 2, 3]);
+}
+
+#[test]
 fn list_append() {
     let mut a = list![1, 2, 3];
     let mut b = list![4, 5, 6];

@@ -156,7 +156,9 @@ impl<T> CircularList<T> {
     }
 
     pub fn rot(&mut self, n: isize) {
+        let len = self.len() as isize;
         if let Some(head) = self.head.as_mut() {
+            let n = n.rem_euclid(len);
             if n < 0 {
                 for _ in 0..-n {
                     unsafe {
