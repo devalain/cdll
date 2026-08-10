@@ -13,6 +13,7 @@
 #![no_std]
 extern crate alloc;
 
+mod cursor;
 mod iter;
 mod list;
 

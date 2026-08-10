@@ -171,6 +171,7 @@ fn list_append() {
     let mut b = list![4, 5, 6];
     a.append(&mut b);
     assert_eq!(a, list![1, 2, 3, 4, 5, 6]);
+    assert_eq!(a.len(), 6);
     assert!(b.is_empty());
 }
 
@@ -199,11 +200,14 @@ fn list_push_front_and_pop_back() {
 #[test]
 fn split_half_and_merge() {
     let list = list![3, 1, 8, 21, 5, 9, 12, 5, 2, 6, 6, 6, 13, 2, 17];
+    let len = list.len();
+    assert_eq!(len, 15);
     let sorted = merge_sort(list);
     assert_eq!(
         sorted,
         list![1, 2, 2, 3, 5, 5, 6, 6, 6, 8, 9, 12, 13, 17, 21]
-    )
+    );
+    assert_eq!(sorted.len(), len);
 }
 fn merge_sort(mut list: CircularList<i32>) -> CircularList<i32> {
     if list.is_empty() || list.len() == 1 {

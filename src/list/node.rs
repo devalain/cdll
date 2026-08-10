@@ -92,8 +92,9 @@ impl<T> Node<T> {
         }
     }
 
-    pub(crate) unsafe fn half(list: &CircularList<T>) -> Option<NonNull<Self>> {
+    pub(crate) unsafe fn half(list: &CircularList<T>) -> Option<(NonNull<Self>, usize)> {
         let head = list.head?;
+        let mut mid_idx = 0;
         unsafe {
             let mut slow = head;
             let mut fast = (*head.as_ptr()).next;
@@ -101,9 +102,10 @@ impl<T> Node<T> {
                 fast = (*(*fast.as_ptr()).next.as_ptr()).next;
                 if fast != head {
                     slow = (*slow.as_ptr()).next;
+                    mid_idx += 1;
                 }
             }
-            Some((*slow.as_ptr()).next)
+            Some(((*slow.as_ptr()).next, (mid_idx + 1) % list.len))
         }
     }
 

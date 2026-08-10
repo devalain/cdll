@@ -1,6 +1,8 @@
 use alloc::boxed::Box;
 pub(crate) mod node;
 
+use crate::cursor::Cursor;
+
 use {
     crate::iter::{IntoIter, Iter, IterMut, Rev},
     core::{marker::PhantomData, ptr::NonNull},
@@ -14,6 +16,7 @@ use {
 /// [`LinkedList`]: https://doc.rust-lang.org/std/collections/struct.LinkedList.html
 pub struct CircularList<T> {
     pub(crate) head: Option<NonNull<Node<T>>>,
+    len: usize,
     _marker: PhantomData<Box<Node<T>>>,
 }
 
@@ -75,6 +78,7 @@ impl<T> CircularList<T> {
     pub fn new() -> Self {
         Self {
             head: None,
+            len: 0,
             _marker: PhantomData,
         }
     }
@@ -105,8 +109,6 @@ impl<T> CircularList<T> {
 
     /// Returns the length of the `CircularList`.
     ///
-    /// This operation should compute in *O*(*n*) time.
-    ///
     /// # Examples
     ///
     /// ```
@@ -124,7 +126,7 @@ impl<T> CircularList<T> {
     /// assert_eq!(cl.len(), 3);
     /// ```
     pub fn len(&self) -> usize {
-        self.iter().count()
+        self.len
     }
 
     /// Returns `true` if the `CircularList` is empty.
@@ -270,6 +272,7 @@ impl<T> CircularList<T> {
         } else {
             self.head = Some(Node::new(val));
         }
+        self.len += 1;
     }
 
     /// Adds an element to the front of the list.
@@ -318,6 +321,7 @@ impl<T> CircularList<T> {
         let next = unsafe { Node::next_distinct(head) };
         let val = unsafe { Node::remove(head) };
         self.head = next;
+        self.len -= 1;
         Some(val)
     }
 
@@ -413,6 +417,13 @@ impl<T> CircularList<T> {
         Rev::from_list(self)
     }
 
+    /// Provides a cursor at the front element.
+    ///
+    /// If the list is empty, returns `None`.
+    pub fn cursor(&self) -> Option<Cursor<'_, T>> {
+        Cursor::from_list(self)
+    }
+
     /// Extracts one half of the list and returns it as a new list.
     ///
     /// If the list is empty, this returns `None`.
@@ -431,15 +442,18 @@ impl<T> CircularList<T> {
     /// ```
     pub fn split_half(&mut self) -> Option<Self> {
         let head = self.head?;
-        let mid = unsafe { Node::half(self) }?;
+        let len = self.len;
+        let (mid, idx) = unsafe { Node::half(self) }?;
         if head == mid {
             return Some(core::mem::take(self));
         }
         unsafe {
             Node::split(head, mid);
         }
+        self.len = idx;
         Some(Self {
             head: Some(mid),
+            len: len - idx,
             ..Default::default()
         })
     }
@@ -533,9 +547,11 @@ impl<T> CircularList<T> {
                 let tail_b = (*head_b.as_ptr()).prev;
                 Node::connect(tail_a, head_b);
                 Node::connect(tail_b, head_a);
-                other.head = None;
             },
         }
+        self.len += other.len;
+        other.head = None;
+        other.len = 0;
     }
 }
 
@@ -577,6 +593,7 @@ impl<T: PartialEq> CircularList<T> {
         let Some(head) = self.head else {
             return;
         };
+        let mut len = self.len;
         unsafe {
             let mut prev_value = &(*head.as_ptr()).value;
             let mut current = (*head.as_ptr()).next;
@@ -589,6 +606,7 @@ impl<T: PartialEq> CircularList<T> {
                 let next = (*current.as_ptr()).next;
                 if value == prev_value {
                     let _ = Node::remove(current);
+                    len -= 1;
                 } else {
                     prev_value = value;
                 }
@@ -596,6 +614,7 @@ impl<T: PartialEq> CircularList<T> {
                 value = &(*current.as_ptr()).value;
             }
         }
+        self.len = len;
     }
 }
 
@@ -635,6 +654,8 @@ impl<T: PartialOrd> CircularList<T> {
                 self.head = Some(Node::merge(head_a, head_b));
             },
         }
+        self.len += other.len;
+        other.len = 0;
         other.head = None;
     }
 }
