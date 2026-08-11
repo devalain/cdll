@@ -468,10 +468,6 @@ impl<T> CircularList<T> {
     ///
     /// Only the Euclid remainder of `mid` modulo `self.len()` is used.
     ///
-    /// # Complexity
-    ///
-    /// Takes linear (in `mid % self.len()`) time.
-    ///
     /// # Examples
     ///
     /// ```

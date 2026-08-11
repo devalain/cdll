@@ -39,4 +39,22 @@ impl<'c, T> Cursor<'c, T> {
         }
         self.index = (self.index + 1) % self.list.len();
     }
+
+    /// Moves the cursor to the previous element of the `CircularList`.
+    ///
+    /// If the cursor is pointing to the first element then this will move it to
+    /// the last element of the `CircularList`.
+    pub fn move_prev(&mut self) {
+        unsafe {
+            self.current = (*self.current.as_ptr()).prev;
+        }
+        let len = self.list.len();
+        self.index = (len + self.index - 1) % len;
+    }
+
+    /// Returns a reference to the element that the cursor is currently
+    /// pointing to.
+    pub fn current(&self) -> &'c T {
+        unsafe { &(*self.current.as_ptr()).value }
+    }
 }

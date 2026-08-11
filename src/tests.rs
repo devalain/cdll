@@ -221,3 +221,22 @@ fn merge_sort(mut list: CircularList<i32>) -> CircularList<i32> {
     list.merge(&mut second);
     list
 }
+
+#[test]
+fn cursor_constructor() {
+    let list = CircularList::<i32>::new();
+    assert!(list.cursor().is_none());
+
+    let list = list!["hello", "world", "!"];
+    let _cursor = list.cursor().unwrap();
+}
+
+#[test]
+fn cursor_index() {
+    let list = list!["hello", "world", "!"];
+    let mut cursor = list.cursor().unwrap();
+
+    assert_eq!(cursor.index(), 0);
+    cursor.move_next();
+    assert_eq!(cursor.index(), 1);
+}
