@@ -24,6 +24,7 @@ mod macros;
 mod tests;
 
 pub use {
+    cursor::{Cursor, CursorMut},
     iter::{IntoIter, Iter, IterMut, Rev},
     list::CircularList,
 };

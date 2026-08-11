@@ -239,4 +239,38 @@ fn cursor_index() {
     assert_eq!(cursor.index(), 0);
     cursor.move_next();
     assert_eq!(cursor.index(), 1);
+    cursor.move_next();
+    assert_eq!(cursor.index(), 2);
+    cursor.move_next();
+    assert_eq!(cursor.index(), 0);
+    cursor.move_prev();
+    assert_eq!(cursor.index(), 2);
+}
+
+#[test]
+fn cursor_move() {
+    let list = list!["hello", "world", "!"];
+    let mut cursor = list.cursor().unwrap();
+
+    assert_eq!(cursor.current(), &"hello");
+    cursor.move_next();
+    assert_eq!(cursor.current(), &"world");
+    cursor.move_next();
+    assert_eq!(cursor.current(), &"!");
+    cursor.move_next();
+    assert_eq!(cursor.current(), &"hello");
+    cursor.move_prev();
+    assert_eq!(cursor.current(), &"!");
+}
+
+#[test]
+fn cursor_mut() {
+    let mut list = list![1, 2, 3, 4, 5, 6];
+    let len = list.len();
+    let mut cursor = list.cursor_mut().unwrap();
+    for _ in 0..2 * len {
+        *cursor.current() *= 10;
+        cursor.move_next();
+    }
+    assert_eq!(list, list![100, 200, 300, 400, 500, 600]);
 }

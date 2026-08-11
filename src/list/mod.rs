@@ -1,7 +1,7 @@
 use alloc::boxed::Box;
 pub(crate) mod node;
 
-use crate::cursor::Cursor;
+use crate::cursor::{Cursor, CursorMut};
 
 use {
     crate::iter::{IntoIter, Iter, IterMut, Rev},
@@ -417,11 +417,18 @@ impl<T> CircularList<T> {
         Rev::from_list(self)
     }
 
-    /// Provides a cursor at the front element.
+    /// Provides a [`Cursor`] at the front element.
     ///
     /// If the list is empty, returns `None`.
     pub fn cursor(&self) -> Option<Cursor<'_, T>> {
         Cursor::from_list(self)
+    }
+
+    /// Provides a [`CursorMut`] at the front element.
+    ///
+    /// If the list is empty, returns `None`.
+    pub fn cursor_mut(&mut self) -> Option<CursorMut<'_, T>> {
+        CursorMut::from_list(self)
     }
 
     /// Extracts one half of the list and returns it as a new list.

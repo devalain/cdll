@@ -11,15 +11,13 @@ Do not use before `v0.5` as it was unsound ! This is a rewrite. The new developp
 
 ## Basic usage
 ```rust
-use cdll::CircularList;
+use cdll::{list, CircularList};
 
-let mut my_list = CircularList::new();
-for x in 1..=5 {
-    my_list.add(x);
-}
+let mut list = list![1, 2, 3];
+list.push_back(4);
 
-assert_eq!(my_list.remove(), Some(1));
-assert_eq!(my_list.pop(), Some(5));
+assert_eq!(list, list![1, 2, 3, 4]);
+assert_eq!(list.pop_front(), Some(1));
 
 my_list.iter_mut().for_each(|x: &mut i32| *x -= 1);
 assert_eq!(my_list.into_iter().collect::<Vec<i32>>(), &[1, 2, 3]);
