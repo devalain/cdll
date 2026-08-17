@@ -24,11 +24,11 @@ impl<'c, T> Iterator for Iter<'c, T> {
     type Item = &'c T;
     fn next(&mut self) -> Option<Self::Item> {
         let current = self.current.take()?;
-        let next = Some(unsafe { (*current.as_ptr()).next });
+        let next = Some(unsafe { Node::next(current) });
         if next != self.list.head {
             self.current = next;
         }
-        Some(unsafe { &(*current.as_ptr()).value })
+        Some(unsafe { Node::value(current) })
     }
 }
 
@@ -45,7 +45,7 @@ impl<'c, T> Rev<'c, T> {
     pub(super) fn from_list(list: &'c CircularList<T>) -> Self {
         Self {
             list,
-            current: list.head.map(|h| unsafe { (*h.as_ptr()).prev }),
+            current: list.head.map(|h| unsafe { Node::prev(h) }),
         }
     }
 }
@@ -54,10 +54,10 @@ impl<'c, T> Iterator for Rev<'c, T> {
     fn next(&mut self) -> Option<Self::Item> {
         let current = self.current.take()?;
         if Some(current) != self.list.head {
-            let prev = Some(unsafe { (*current.as_ptr()).prev });
+            let prev = Some(unsafe { Node::prev(current) });
             self.current = prev;
         }
-        Some(unsafe { &(*current.as_ptr()).value })
+        Some(unsafe { Node::value(current) })
     }
 }
 
@@ -80,11 +80,11 @@ impl<'c, T> Iterator for IterMut<'c, T> {
     type Item = &'c mut T;
     fn next(&mut self) -> Option<Self::Item> {
         let current = self.current.take()?;
-        let next = Some(unsafe { (*current.as_ptr()).next });
+        let next = Some(unsafe { Node::next(current) });
         if next != self.list.head {
             self.current = next;
         }
-        Some(unsafe { &mut (*current.as_ptr()).value })
+        Some(unsafe { Node::value_mut(current) })
     }
 }
 

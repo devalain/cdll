@@ -274,3 +274,33 @@ fn cursor_mut() {
     }
     assert_eq!(list, list![100, 200, 300, 400, 500, 600]);
 }
+
+#[test]
+fn cursor_move_current() {
+    let mut list = list![1, 2, 3, 4];
+
+    {
+        let mut cursor = list.cursor_mut().unwrap();
+        cursor.move_next();
+        cursor.move_node_next();
+        assert_eq!(cursor.current(), &mut 2);
+    }
+    assert_eq!(list, list![1, 3, 2, 4]);
+
+    {
+        let mut cursor = list.cursor_mut().unwrap();
+        cursor.move_next();
+        cursor.move_next();
+        cursor.move_node_next();
+        cursor.move_node_next();
+        assert_eq!(cursor.current(), &mut 2);
+    }
+    assert_eq!(list, list![1, 2, 3, 4]);
+
+    {
+        let mut cursor = list.cursor_mut().unwrap();
+        cursor.move_node_prev();
+        assert_eq!(cursor.current(), &mut 1);
+    }
+    assert_eq!(list, list![1, 4, 2, 3]);
+}
