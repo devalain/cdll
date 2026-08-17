@@ -117,22 +117,22 @@ impl<T> Node<T> {
         }
     }
 
-    /// Sets the next node of `this` to `next` and the previous node of 
+    /// Sets the next node of `this` to `next` and the previous node of
     /// `next` to `this`.
-    /// 
+    ///
     /// # Safety
-    /// When using this function, the caller must be careful and make sure 
+    /// When using this function, the caller must be careful and make sure
     /// every node is in a group arranged in a circular fashion.
-    pub(super) unsafe fn connect(this: NonNull<Node<T>>, next: NonNull<Node<T>>) {
+    pub(crate) unsafe fn connect(this: NonNull<Node<T>>, next: NonNull<Node<T>>) {
         unsafe {
             Self::set_next(this, next);
             Self::set_prev(next, this);
         }
     }
 
-    /// Disconnects the node, frees its memory and moves the carried value 
+    /// Disconnects the node, frees its memory and moves the carried value
     /// by returning it.
-    pub(super) unsafe fn remove(this: NonNull<Node<T>>) -> T {
+    pub(crate) unsafe fn remove(this: NonNull<Node<T>>) -> T {
         unsafe {
             Self::disconnect(this);
             let this = Box::from_raw(this.as_ptr());

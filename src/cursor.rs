@@ -124,6 +124,64 @@ impl<'c, T> CursorMut<'c, T> {
         self.index = (len + self.index - 1) % len;
     }
 
+    /// Moves the node under the cursor to the next position.
+    /// Does nothing if the list has less than 3 items.
+    ///
+    /// # Node
+    /// This operation does not change which node is the head one.
+    /// For instance,
+    /// ```
+    /// # use cdll::list;
+    /// let mut list = list!['a', 'b', 'c', 'd'];
+    /// list.cursor_mut().unwrap().move_node_next();
+    /// assert_eq!(list, list!['a', 'c', 'd', 'b'])
+    /// ```
+    pub fn move_node_next(&mut self) {
+        if self.list.len() < 3 {
+            return;
+        }
+
+        let current = self.current;
+        unsafe {
+            let prev = Node::prev(current);
+            let next = Node::next(current);
+            let next_next = Node::next(next);
+
+            Node::connect(current, next_next);
+            Node::connect(next, current);
+            Node::connect(prev, next);
+        }
+    }
+
+    /// Moves the node under the cursor to the previous position.
+    /// Does nothing if the list has less than 3 items.
+    ///
+    /// # Node
+    /// This operation does not change which node is the head one.
+    /// For instance,
+    /// ```
+    /// # use cdll::list;
+    /// let mut list = list!['a', 'b', 'c', 'd', 'e'];
+    /// list.cursor_mut().unwrap().move_node_prev();
+    /// assert_eq!(list, list!['a', 'e', 'b', 'c', 'd'])
+    /// ```
+    pub fn move_node_prev(&mut self) {
+        if self.list.len() < 3 {
+            return;
+        }
+
+        let current = self.current;
+        unsafe {
+            let prev = Node::prev(current);
+            let prev_prev = Node::prev(prev);
+            let next = Node::next(current);
+
+            Node::connect(current, prev);
+            Node::connect(prev, next);
+            Node::connect(prev_prev, current);
+        }
+    }
+
     /// Returns a reference to the element that the cursor is currently
     /// pointing to.
     pub fn current(&mut self) -> &'c mut T {
