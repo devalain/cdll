@@ -80,6 +80,7 @@ impl<T> Node<T> {
         }
     }
 
+    /// Inserts a new node with value `val` between `this` and its previous node.
     pub(crate) unsafe fn insert_prev(this: NonNull<Node<T>>, val: T) {
         let new = Self::new(val);
 
@@ -93,6 +94,9 @@ impl<T> Node<T> {
         }
     }
 
+    /// Isolate `this` from its connected nodes (if any).
+    /// Do nothing if `this` is only connected to itsef (as it is when constructed
+    /// by [`Self::new`]).
     pub(crate) unsafe fn disconnect(this: NonNull<Node<T>>) {
         unsafe {
             let prev = Self::prev(this);
@@ -113,14 +117,22 @@ impl<T> Node<T> {
         }
     }
 
-    pub(crate) unsafe fn connect(this: NonNull<Node<T>>, next: NonNull<Node<T>>) {
+    /// Sets the next node of `this` to `next` and the previous node of 
+    /// `next` to `this`.
+    /// 
+    /// # Safety
+    /// When using this function, the caller must be careful and make sure 
+    /// every node is in a group arranged in a circular fashion.
+    pub(super) unsafe fn connect(this: NonNull<Node<T>>, next: NonNull<Node<T>>) {
         unsafe {
             Self::set_next(this, next);
             Self::set_prev(next, this);
         }
     }
 
-    pub(crate) unsafe fn remove(this: NonNull<Node<T>>) -> T {
+    /// Disconnects the node, frees its memory and moves the carried value 
+    /// by returning it.
+    pub(super) unsafe fn remove(this: NonNull<Node<T>>) -> T {
         unsafe {
             Self::disconnect(this);
             let this = Box::from_raw(this.as_ptr());
@@ -128,7 +140,7 @@ impl<T> Node<T> {
         }
     }
 
-    pub(crate) unsafe fn half(list: &CircularList<T>) -> Option<(NonNull<Self>, usize)> {
+    pub(super) unsafe fn half(list: &CircularList<T>) -> Option<(NonNull<Self>, usize)> {
         let head = list.head?;
         let mut mid_idx = 0;
         unsafe {
@@ -145,7 +157,7 @@ impl<T> Node<T> {
         }
     }
 
-    pub(crate) unsafe fn split(head: NonNull<Node<T>>, mid: NonNull<Node<T>>) {
+    pub(super) unsafe fn split(head: NonNull<Node<T>>, mid: NonNull<Node<T>>) {
         unsafe {
             // Assume mid is not head
             let old_last = Node::prev(head);
@@ -159,7 +171,7 @@ impl<T> Node<T> {
         }
     }
 
-    pub(crate) unsafe fn merge(
+    pub(super) unsafe fn merge(
         head_a: NonNull<Node<T>>,
         head_b: NonNull<Node<T>>,
     ) -> NonNull<Node<T>>
