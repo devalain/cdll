@@ -1,9 +1,9 @@
 use {crate::CircularList, alloc::boxed::Box, core::ptr::NonNull};
 
 pub(crate) struct Node<T> {
-    pub next: NonNull<Node<T>>,
-    pub prev: NonNull<Node<T>>,
-    pub value: T,
+    next: NonNull<Node<T>>,
+    prev: NonNull<Node<T>>,
+    value: T,
 }
 impl<T> Node<T> {
     /// Creates a new element with value `val`.
@@ -35,6 +35,44 @@ impl<T> Node<T> {
         ptr
     }
 
+    /// Returns the next node.
+    pub(crate) unsafe fn next(this: NonNull<Node<T>>) -> NonNull<Node<T>> {
+        unsafe { (*this.as_ptr()).next }
+    }
+    unsafe fn set_next(this: NonNull<Node<T>>, next: NonNull<Node<T>>) {
+        unsafe {
+            (*this.as_ptr()).next = next;
+        }
+    }
+
+    /// Returns the previous node.
+    pub(crate) unsafe fn prev(this: NonNull<Node<T>>) -> NonNull<Node<T>> {
+        unsafe { (*this.as_ptr()).prev }
+    }
+    unsafe fn set_prev(this: NonNull<Node<T>>, prev: NonNull<Node<T>>) {
+        unsafe {
+            (*this.as_ptr()).prev = prev;
+        }
+    }
+
+    /// Returns a shared reference to the value carried by `this` node.
+    ///
+    /// # Safety
+    /// The caller must ensure no exclusive reference lives by the `'a` lifetime.
+    pub(crate) unsafe fn value<'a>(this: NonNull<Node<T>>) -> &'a T {
+        unsafe { &(*this.as_ptr()).value }
+    }
+
+    /// Returns an exclusive reference to the value carried by `this` node.
+    ///
+    /// # Safety
+    /// The caller must ensure no other reference lives by the `'a` lifetime.
+    pub(crate) unsafe fn value_mut<'a>(this: NonNull<Node<T>>) -> &'a mut T {
+        unsafe { &mut (*this.as_ptr()).value }
+    }
+
+    /// Returns the node next to `this`.
+    /// Returns `None` if `this` is its own next node.
     pub(crate) unsafe fn next_distinct(this: NonNull<Node<T>>) -> Option<NonNull<Node<T>>> {
         unsafe {
             let next = (*this.as_ptr()).next;
@@ -46,41 +84,39 @@ impl<T> Node<T> {
         let new = Self::new(val);
 
         unsafe {
-            let prev = (*this.as_ptr()).prev.as_ptr();
-            (*prev).next = new;
-            (*new.as_ptr()).prev = NonNull::new_unchecked(prev);
+            let prev = Self::prev(this);
+            Self::set_next(prev, new);
+            Self::set_prev(new, prev);
 
-            (*new.as_ptr()).next = NonNull::new_unchecked(this.as_ptr());
-            (*this.as_ptr()).prev = new;
+            Self::set_next(new, this);
+            Self::set_prev(this, new);
         }
     }
 
     pub(crate) unsafe fn disconnect(this: NonNull<Node<T>>) {
         unsafe {
-            let prev = (*this.as_ptr()).prev.as_ptr();
-            let next = (*this.as_ptr()).next.as_ptr();
+            let prev = Self::prev(this);
+            let next = Self::next(this);
 
             if prev != next {
                 // 3 or more elements
-                let prev = (*this.as_ptr()).prev;
-                let next = (*this.as_ptr()).next;
-
-                (*prev.as_ptr()).next = next;
-                (*next.as_ptr()).prev = prev;
-            } else if this.as_ptr() != prev {
+                Self::set_next(prev, next);
+                Self::set_prev(next, prev);
+            } else if this != prev {
                 // 2 elements
-                let next = (*this.as_ptr()).next;
+                let next = Self::next(this);
 
-                (*next.as_ptr()).next = next;
-                (*next.as_ptr()).prev = next;
+                Self::set_next(next, next);
+                Self::set_prev(next, next);
             };
+            /* The case with 1 element is a no-op */
         }
     }
 
     pub(crate) unsafe fn connect(this: NonNull<Node<T>>, next: NonNull<Node<T>>) {
         unsafe {
-            (*this.as_ptr()).next = next;
-            (*next.as_ptr()).prev = this;
+            Self::set_next(this, next);
+            Self::set_prev(next, this);
         }
     }
 
@@ -97,29 +133,29 @@ impl<T> Node<T> {
         let mut mid_idx = 0;
         unsafe {
             let mut slow = head;
-            let mut fast = (*head.as_ptr()).next;
-            while fast != head && (*fast.as_ptr()).next != head {
-                fast = (*(*fast.as_ptr()).next.as_ptr()).next;
+            let mut fast = Self::next(head);
+            while fast != head && Self::next(fast) != head {
+                fast = Self::next(Self::next(fast));
                 if fast != head {
-                    slow = (*slow.as_ptr()).next;
+                    slow = Self::next(slow);
                     mid_idx += 1;
                 }
             }
-            Some(((*slow.as_ptr()).next, (mid_idx + 1) % list.len))
+            Some((Self::next(slow), (mid_idx + 1) % list.len))
         }
     }
 
     pub(crate) unsafe fn split(head: NonNull<Node<T>>, mid: NonNull<Node<T>>) {
         unsafe {
             // Assume mid is not head
-            let old_last = (*head.as_ptr()).prev;
-            let new_last = (*mid.as_ptr()).prev;
+            let old_last = Node::prev(head);
+            let new_last = Node::prev(mid);
 
-            (*head.as_ptr()).prev = new_last;
-            (*mid.as_ptr()).prev = old_last;
+            Self::set_prev(head, new_last);
+            Self::set_prev(mid, old_last);
 
-            (*old_last.as_ptr()).next = mid;
-            (*new_last.as_ptr()).next = head;
+            Self::set_next(old_last, mid);
+            Self::set_next(new_last, head);
         }
     }
 
@@ -131,23 +167,21 @@ impl<T> Node<T> {
         T: PartialOrd,
     {
         unsafe {
-            let lt = |a: NonNull<Node<T>>, b: NonNull<Node<T>>| {
-                (*a.as_ptr()).value < (*b.as_ptr()).value
-            };
+            let lt = |a: NonNull<Node<T>>, b: NonNull<Node<T>>| Self::value(a) < Self::value(b);
 
-            let tail_a = (*head_a.as_ptr()).prev;
-            let tail_b = (*head_b.as_ptr()).prev;
+            let tail_a = Self::prev(head_a);
+            let tail_b = Self::prev(head_b);
 
             let head = if lt(head_a, head_b) { head_a } else { head_b };
             let tail = if lt(tail_a, tail_b) { tail_b } else { tail_a };
 
             let mut next_a = if head == head_a {
-                (*head_a.as_ptr()).next
+                Self::next(head_a)
             } else {
                 head_a
             };
             let mut next_b = if head == head_b {
-                (*head_b.as_ptr()).next
+                Self::next(head_b)
             } else {
                 head_b
             };
@@ -170,16 +204,16 @@ impl<T> Node<T> {
                         Self::connect(next_a, next_b);
                         break;
                     }
-                    next_a = (*next_a.as_ptr()).next;
+                    next_a = Self::next(next_a);
                 } else {
                     Self::connect(current, next_b);
                     if next_b == tail_b {
                         Self::connect(next_b, next_a);
                         break;
                     }
-                    next_b = (*next_b.as_ptr()).next;
+                    next_b = Self::next(next_b);
                 }
-                current = (*current.as_ptr()).next;
+                current = Self::next(current);
             }
 
             Node::connect(tail, head);

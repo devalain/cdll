@@ -35,7 +35,7 @@ impl<'c, T> Cursor<'c, T> {
     /// the first element of the `CircularList`.
     pub fn move_next(&mut self) {
         unsafe {
-            self.current = (*self.current.as_ptr()).next;
+            self.current = Node::next(self.current);
         }
         self.index = (self.index + 1) % self.list.len();
     }
@@ -46,7 +46,7 @@ impl<'c, T> Cursor<'c, T> {
     /// the last element of the `CircularList`.
     pub fn move_prev(&mut self) {
         unsafe {
-            self.current = (*self.current.as_ptr()).prev;
+            self.current = Node::prev(self.current);
         }
         let len = self.list.len();
         self.index = (len + self.index - 1) % len;
@@ -55,22 +55,22 @@ impl<'c, T> Cursor<'c, T> {
     /// Returns a reference to the element that the cursor is currently
     /// pointing to.
     pub fn current(&self) -> &'c T {
-        unsafe { &(*self.current.as_ptr()).value }
+        unsafe { Node::value(self.current) }
     }
 
     /// Returns a reference to the next element.
     pub fn peek_next(&self) -> &'c T {
         unsafe {
-            let next = (*self.current.as_ptr()).next;
-            &(*next.as_ptr()).value
+            let next = Node::next(self.current);
+            Node::value(next)
         }
     }
 
     /// Returns a reference to the previous element.
     pub fn peek_prev(&self) -> &'c T {
         unsafe {
-            let prev = (*self.current.as_ptr()).prev;
-            &(*prev.as_ptr()).value
+            let prev = Node::prev(self.current);
+            Node::value(prev)
         }
     }
 }
@@ -107,7 +107,7 @@ impl<'c, T> CursorMut<'c, T> {
     /// the first element of the `CircularList`.
     pub fn move_next(&mut self) {
         unsafe {
-            self.current = (*self.current.as_ptr()).next;
+            self.current = Node::next(self.current);
         }
         self.index = (self.index + 1) % self.list.len();
     }
@@ -118,7 +118,7 @@ impl<'c, T> CursorMut<'c, T> {
     /// the last element of the `CircularList`.
     pub fn move_prev(&mut self) {
         unsafe {
-            self.current = (*self.current.as_ptr()).prev;
+            self.current = Node::prev(self.current);
         }
         let len = self.list.len();
         self.index = (len + self.index - 1) % len;
@@ -127,22 +127,22 @@ impl<'c, T> CursorMut<'c, T> {
     /// Returns a reference to the element that the cursor is currently
     /// pointing to.
     pub fn current(&mut self) -> &'c mut T {
-        unsafe { &mut (*self.current.as_ptr()).value }
+        unsafe { Node::value_mut(self.current) }
     }
 
     /// Returns a reference to the next element.
     pub fn peek_next(&self) -> &'c T {
         unsafe {
-            let next = (*self.current.as_ptr()).next;
-            &(*next.as_ptr()).value
+            let next = Node::next(self.current);
+            Node::value(next)
         }
     }
 
     /// Returns a reference to the previous element.
     pub fn peek_prev(&self) -> &'c T {
         unsafe {
-            let prev = (*self.current.as_ptr()).prev;
-            &(*prev.as_ptr()).value
+            let prev = Node::prev(self.current);
+            Node::value(prev)
         }
     }
 }

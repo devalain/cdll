@@ -166,7 +166,7 @@ impl<T> CircularList<T> {
     /// ```
     pub fn front(&self) -> Option<&T> {
         let head = self.head?;
-        Some(unsafe { &(*head.as_ptr()).value })
+        Some(unsafe { Node::value(head) })
     }
 
     /// Provides a mutable reference to the front element, or `None` if the list
@@ -193,7 +193,7 @@ impl<T> CircularList<T> {
     /// ```
     pub fn front_mut(&mut self) -> Option<&mut T> {
         let head = self.head?;
-        Some(unsafe { &mut (*head.as_ptr()).value })
+        Some(unsafe { Node::value_mut(head) })
     }
 
     /// Provides a reference to the back element, or `None` if the list is
@@ -215,8 +215,8 @@ impl<T> CircularList<T> {
     pub fn back(&self) -> Option<&T> {
         let head = self.head?;
         Some(unsafe {
-            let tail = (*head.as_ptr()).prev;
-            &(*tail.as_ptr()).value
+            let tail = Node::prev(head);
+            Node::value(tail)
         })
     }
 
@@ -245,8 +245,8 @@ impl<T> CircularList<T> {
     pub fn back_mut(&mut self) -> Option<&mut T> {
         let head = self.head?;
         Some(unsafe {
-            let tail = (*head.as_ptr()).prev;
-            &mut (*tail.as_ptr()).value
+            let tail = Node::prev(head);
+            Node::value_mut(tail)
         })
     }
 
@@ -497,13 +497,13 @@ impl<T> CircularList<T> {
             if n < 0 {
                 for _ in 0..-n {
                     unsafe {
-                        *head = (*head.as_ptr()).prev;
+                        *head = Node::prev(*head);
                     }
                 }
             } else {
                 for _ in 0..n {
                     unsafe {
-                        *head = (*head.as_ptr()).next;
+                        *head = Node::next(*head);
                     }
                 }
             }
@@ -546,8 +546,8 @@ impl<T> CircularList<T> {
                 self.head = Some(head);
             }
             (Some(head_a), Some(head_b)) => unsafe {
-                let tail_a = (*head_a.as_ptr()).prev;
-                let tail_b = (*head_b.as_ptr()).prev;
+                let tail_a = Node::prev(head_a);
+                let tail_b = Node::prev(head_b);
                 Node::connect(tail_a, head_b);
                 Node::connect(tail_b, head_a);
             },
@@ -598,15 +598,15 @@ impl<T: PartialEq> CircularList<T> {
         };
         let mut len = self.len;
         unsafe {
-            let mut prev_value = &(*head.as_ptr()).value;
-            let mut current = (*head.as_ptr()).next;
-            let mut value = &(*current.as_ptr()).value;
+            let mut prev_value = Node::value(head);
+            let mut current = Node::next(head);
+            let mut value = Node::value(current);
 
             loop {
                 if current == head {
                     break;
                 }
-                let next = (*current.as_ptr()).next;
+                let next = Node::next(current);
                 if value == prev_value {
                     let _ = Node::remove(current);
                     len -= 1;
@@ -614,7 +614,7 @@ impl<T: PartialEq> CircularList<T> {
                     prev_value = value;
                 }
                 current = next;
-                value = &(*current.as_ptr()).value;
+                value = Node::value(current);
             }
         }
         self.len = len;
