@@ -684,3 +684,11 @@ impl<T> Drop for CircularList<T> {
         while self.pop_front().is_some() {}
     }
 }
+
+/// Safety: Downstream users have no access to the underlying
+/// data structure that handle pointers. `CircularList<T>` is
+/// therefore safe to send as long as `T` is `Send``.
+unsafe impl<T> Send for CircularList<T> where T: Send {}
+
+/// Safety: `CircularList` does not use any interior mutability.
+unsafe impl<T> Sync for CircularList<T> where T: Sync {}
