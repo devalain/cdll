@@ -25,7 +25,7 @@ impl<T> Node<T> {
             value,
         });
 
-        let mut ptr = NonNull::from(Box::leak(boxed));
+        let mut ptr = Box::into_non_null(boxed);
 
         unsafe {
             ptr.as_mut().next = ptr;
@@ -135,7 +135,7 @@ impl<T> Node<T> {
     pub(crate) unsafe fn remove(this: NonNull<Node<T>>) -> T {
         unsafe {
             Self::disconnect(this);
-            let this = Box::from_raw(this.as_ptr());
+            let this = Box::from_non_null(this);
             this.value
         }
     }
